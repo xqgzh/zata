@@ -8,7 +8,7 @@ namespace Zata.Dynamic
 {
     public interface IAction
     {
-        MethodWrapper Proxy { get;set; }
+        MethodWrapper Proxy { get;}
 
         IAction Init(MethodWrapper methodWrapper, IAction nextAction);
 
@@ -17,6 +17,6 @@ namespace Zata.Dynamic
         /// </summary>
         /// <param name="Context"></param>
         /// <returns></returns>
-        ActionContext Execute(ActionContext Context);
+        void Execute(ActionContext Context);
     }
 }

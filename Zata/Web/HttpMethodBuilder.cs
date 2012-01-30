@@ -5,6 +5,7 @@ using System.Text;
 using System.Web;
 using Zata.Web.Basic;
 using Zata.Dynamic;
+using System.Reflection;
 
 namespace Zata.Web
 {
@@ -16,37 +17,48 @@ namespace Zata.Web
         /// <summary>
         /// WebContext
         /// </summary>
-        protected List<HttpMethodContext> HttpActionList = new List<HttpMethodContext>();
+        protected List<Type> HttpProtocolList = new List<Type>();
 
         /// <summary>
         /// WebContext
         /// </summary>
-        protected List<Func<HttpContext, ActionBuilder, HttpMethodContext>> HttpActionList2 = new List<Func<HttpContext, ActionBuilder, HttpMethodContext>>();
+        protected List<Func<HttpContext, string>> AccepterList = new List<Func<HttpContext, string>>();
 
         public HttpMethodBuilder()
         {
-            //HttpActionList.Add(new Basic.BasicHttpMethodContext());
-            HttpActionList2.Add(Basic.BasicHttpMethodContext.Accept);
+            HttpProtocolList.Add(typeof(Basic.BasicHttpMethodProtocol));
         }
 
 
-        public HttpMethodContext FindMethod(HttpContext httpContext)
+        public HttpMethodProtocol FindMethod(HttpContext httpContext)
         {
-            HttpActionList2.Select(fun => fun.Method);
-
-
-            foreach (var contextFinder in HttpActionList2)
+            //添加协议支持
+            foreach (var protocolType in HttpProtocolList)
             {
-                HttpMethodContext CurrentAction = contextFinder(httpContext, this);
+                HttpMethodProtocol protocol = Activator.CreateInstance(protocolType) as HttpMethodProtocol;
 
-                if (CurrentAction != null)
-                    return CurrentAction;
+                string MethodKey = protocol.Accept(httpContext);
+
+                if (!string.IsNullOrEmpty(MethodKey))
+                {
+                    IAction action = base.FindAction(MethodKey);
+
+                    if (action != null)
+                    {
+                        protocol.Init(action.Proxy, action);
+
+                        return protocol;
+                    }
+                }
             }
+
+            //添加其他类型的Action
 
             return null;
         }
 
         [ThreadStatic]
-        public static HttpMethodContext CurrentAction;
+        public static HttpMethodProtocol CurrentAction;
+
     }
 }

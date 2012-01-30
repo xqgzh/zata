@@ -8,7 +8,7 @@ namespace Zata.Dynamic
     /// Rest类属性实体
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class RestParameterAttribute : System.Attribute
+    public class ParamAttribute : System.Attribute
     {
         /// <summary>
         /// 是否必须
@@ -29,7 +29,7 @@ namespace Zata.Dynamic
         /// Rest参数属性构造函数
         /// </summary>
         /// <param name="isRequired"></param>
-        public RestParameterAttribute(bool isRequired)
+        public ParamAttribute(bool isRequired)
         {
             this.IsRequired = isRequired;
         }

@@ -17,7 +17,7 @@ namespace Zata.Dynamic
         public bool IsEnum;
         public bool IsIConvertible;
         public string Name;
-        public RestParameterAttribute Setting;
+        public ParamAttribute Setting;
 
         public ParamInfo()
         {
@@ -34,8 +34,8 @@ namespace Zata.Dynamic
 
             foreach (object o in Attributes)
             {
-                if (o is RestParameterAttribute)
-                    Setting = (RestParameterAttribute)o;
+                if (o is ParamAttribute)
+                    Setting = (ParamAttribute)o;
             }
 
             foreach (Type t in Interfaces)

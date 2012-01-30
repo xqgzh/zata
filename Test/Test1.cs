@@ -64,6 +64,10 @@ namespace TestConsole
         {
             Stopwatch sw = new Stopwatch();
 
+            if (watcher == null)
+                watcher = (a, b) => { Console.WriteLine("{0} : {1}", a, b.Elapsed); };
+
+
             for (int r = 0, j = funcList.Length; r < j; r++)
             {
                 var a = funcList[r];

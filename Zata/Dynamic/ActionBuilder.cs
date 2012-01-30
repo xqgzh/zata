@@ -63,6 +63,8 @@ namespace Zata.Dynamic
                 BindingFlags.Static |
                 BindingFlags.DeclaredOnly);
 
+
+
             object[] typeAttributes = t.GetCustomAttributes(false);
 
             foreach (var m in methods)

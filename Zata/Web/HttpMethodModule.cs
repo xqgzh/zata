@@ -43,10 +43,10 @@ namespace Zata.Web
 
             if (HttpMethodBuilder.CurrentAction != null)
             {
-                HttpMethodBuilder.CurrentAction.Execute();
+                HttpMethodBuilder.CurrentAction.Execute(HttpMethodBuilder.CurrentAction);
                 
                 //根据上下文决定是否由框架处理请求
-                if (HttpMethodBuilder.CurrentAction.IsRenderView)
+                if (HttpMethodBuilder.CurrentAction.IsFormat)
                     httpApplication.CompleteRequest();
             }
         }
@@ -61,11 +61,12 @@ namespace Zata.Web
                 HttpRequest httpRequest = httpApplication.Request;
                 HttpResponse httpResponse = httpApplication.Response;
 
-                HttpMethodContext httpAction = HttpMethodBuilder.CurrentAction;
+                HttpMethodProtocol httpAction = HttpMethodBuilder.CurrentAction;
 
-                if (httpAction != null && httpAction.IsRenderView)
+                if (httpAction != null && httpAction.IsFormat)
                 {
-                    httpAction.RenderView();
+                    httpAction.Result = Convert.ToString(httpAction.Result) + DateTime.Now.Second;
+                    httpAction.Format();
                 }
             }
             catch

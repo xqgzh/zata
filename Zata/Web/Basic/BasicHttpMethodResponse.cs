@@ -25,7 +25,7 @@ namespace Zata.Web.Basic
         /// <param name="httpRequest"></param>
         /// <param name="httpResponse"></param>
         /// <param name="httpMethodContext"></param>
-        public void ProcessResponse(HttpContext httpContext, HttpMethodContext httpMethodContext)
+        public void ProcessResponse(HttpContext httpContext, HttpMethodProtocol httpMethodContext)
         {
             //0 业务逻辑检查, 检查方法的返回值是否合法
             //1 生成结果的二进制字节流
@@ -251,5 +251,6 @@ namespace Zata.Web.Basic
         }
 
         #endregion
+
     }
 }

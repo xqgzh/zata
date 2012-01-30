@@ -54,12 +54,13 @@
     <Compile Include="Dynamic\MethodGenerater.cs" />
     <Compile Include="Dynamic\MethodWrapper.cs" />
     <Compile Include="Dynamic\ParamInfo.cs" />
-    <Compile Include="Dynamic\RestParameterAttribute.cs" />
-    <Compile Include="Web\Basic\BasicHttpMethodContext.cs" />
+    <Compile Include="Dynamic\ParamAttribute.cs" />
+    <Compile Include="Web\Basic\BasicHttpMethodProtocol.cs" />
     <Compile Include="Web\Basic\BasicHttpMethodResponse.cs" />
     <Compile Include="Web\Basic\MediaTypes.cs" />
+    <Compile Include="Web\HttpCacheAction.cs" />
     <Compile Include="Web\HttpMethodBuilder.cs" />
-    <Compile Include="Web\HttpMethodContext.cs" />
+    <Compile Include="Web\HttpMethodProtocol.cs" />
     <Compile Include="Web\HttpMethodModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\SerializeHelper.cs" />

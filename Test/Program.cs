@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Threading;
+using Zata.Web;
 
 namespace TestConsole
 {
@@ -8,12 +12,10 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
-            Test1.TestPerf();
+
         }
 
+        
     }
-
-
-
 }
 

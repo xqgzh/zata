@@ -33,10 +33,10 @@ namespace Zata.Dynamic
             return true;
         }
 
-        public override ActionContext Execute(ActionContext Context)
+        public override void Execute(ActionContext Context)
         {
             Context.Arguments = PrepareParameters(Context.Arguments);
-            return base.Execute(Context);
+            base.Execute(Context);
         }
 
         #region 准备参数, 设置缺省值, 类型转换

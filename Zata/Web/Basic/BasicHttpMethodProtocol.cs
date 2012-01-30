@@ -7,52 +7,32 @@ using Zata.Dynamic;
 
 namespace Zata.Web.Basic
 {
-    class BasicHttpMethodContext : HttpMethodContext
+    class BasicHttpMethodProtocol : HttpMethodProtocol
     {
-        public static HttpMethodContext Accept(HttpContext httpContext, ActionBuilder actionBuilder)
-        {
-            //标准HTTP调用
-            string methodKey = GetMethodKey(httpContext.Request);
-
-            if (string.IsNullOrEmpty(methodKey))
-                return null;
-
-            IAction action = actionBuilder.FindAction(methodKey);
-
-            //检查是否能找到对应的方法代理
-            if (action == null)
-                return null;
-
-            BasicHttpMethodContext context = new BasicHttpMethodContext()
-            {
-                Action = action,
-                HttpContext = httpContext
-            };
-
-            //初始化参数
-            context.InitArguments();
-
-            //装配Action
-            context.IsRenderView = IsWebMethodHandleResponse(context.HttpContext);
-
-            return context;
-        }
-
-        public override void RenderView()
+        public override void Format()
         {
             new BasicHttpMethodResponse().ProcessResponse(HttpContext, this);
         }
 
         protected virtual void InitArguments()
         {
-            Arguments = new object[Action.Proxy.Parameters.Length];
-            for (int i = 0, j = Action.Proxy.Parameters.Length; i < j; i++)
+            Arguments = new object[Proxy.Parameters.Length];
+            for (int i = 0, j = Proxy.Parameters.Length; i < j; i++)
             {
-                var p = Action.Proxy.Parameters[i];
+                var p = Proxy.Parameters[i];
                 string para = HttpContext.Request[p.Name];
 
                 Arguments[i] = para;
             }
+        }
+
+        protected override void Config()
+        {
+            //初始化参数
+            InitArguments();
+
+            //装配Action
+            IsFormat = IsWebMethodHandleResponse(HttpContext);
         }
 
         #region 通过HTTP上下文获取方法名称
@@ -66,7 +46,7 @@ namespace Zata.Web.Basic
         /// </summary>
         /// <param name="httpRequest"></param>
         /// <returns></returns>
-        static string GetMethodKey(HttpRequest httpRequest)
+        protected override string GetMethodKey(HttpRequest httpRequest)
         {
             string s = string.Empty;
 

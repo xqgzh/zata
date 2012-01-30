@@ -16,7 +16,7 @@ namespace Zata.Dynamic
         /// <summary>
         /// 业务代理对象
         /// </summary>
-        public MethodWrapper Proxy { get; set; }
+        public MethodWrapper Proxy { get;protected set; }
 
         public abstract bool Config();
 
@@ -28,20 +28,16 @@ namespace Zata.Dynamic
             if (!Config())
                 return nextAction;
 
-
-
             return this;
         }
 
-        public virtual ActionContext Execute(ActionContext Context)
+        public virtual void Execute(ActionContext Context)
         {
             //做自己的事
             if(NextAction != null)
                 NextAction.Execute(Context);
             else if (Proxy != null)
                 Proxy.Execute(Context);
-
-            return null;
         }
     }
 }
