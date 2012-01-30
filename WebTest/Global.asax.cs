@@ -12,7 +12,6 @@ namespace WebUI
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            
             HttpMethodModule.MethodBuilder.RegistType<Test1>().RegistType<Test2>();
         }
 
