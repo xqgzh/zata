@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Web;
 using Zata.Dynamic;
-//using Bambook.Common.Util;
-//using Bambook.Common.Rest;
 
 namespace Zata.Web.Basic
 {
@@ -19,20 +17,25 @@ namespace Zata.Web.Basic
             if (string.IsNullOrEmpty(methodKey))
                 return null;
 
-            BasicHttpMethodContext CurrentContext = new BasicHttpMethodContext();
-            CurrentContext.HttpContext = httpContext;
-            CurrentContext.CurrentAction = actionBuilder.FindAction(methodKey);
+            IAction action = actionBuilder.FindAction(methodKey);
 
             //检查是否能找到对应的方法代理
-            if (CurrentContext.CurrentAction == null)
+            if (action == null)
                 return null;
 
+            BasicHttpMethodContext context = new BasicHttpMethodContext()
+            {
+                Action = action,
+                HttpContext = httpContext
+            };
+
             //初始化参数
-            CurrentContext.InitArguments();
+            context.InitArguments();
 
-            CurrentContext.IsRenderView = IsWebMethodHandleResponse(CurrentContext.HttpContext);
+            //装配Action
+            context.IsRenderView = IsWebMethodHandleResponse(context.HttpContext);
 
-            return CurrentContext;
+            return context;
         }
 
         public override void RenderView()
@@ -42,10 +45,10 @@ namespace Zata.Web.Basic
 
         protected virtual void InitArguments()
         {
-            Arguments = new object[CurrentAction.Proxy.Parameters.Length];
-            for (int i = 0, j = CurrentAction.Proxy.Parameters.Length; i < j; i++)
+            Arguments = new object[Action.Proxy.Parameters.Length];
+            for (int i = 0, j = Action.Proxy.Parameters.Length; i < j; i++)
             {
-                var p = CurrentAction.Proxy.Parameters[i];
+                var p = Action.Proxy.Parameters[i];
                 string para = HttpContext.Request[p.Name];
 
                 Arguments[i] = para;
@@ -54,7 +57,7 @@ namespace Zata.Web.Basic
 
         #region 通过HTTP上下文获取方法名称
 
-        static string BambookRest = "/Rest/";
+        static string RestPrefix = "/Rest/";
         static string[] MethodNameKeys = { "ActionID", "method", "methodname", "m" };
         static string[] RegistedHandlerPaths = { "/resthandler.ashx" };
 
@@ -84,8 +87,8 @@ namespace Zata.Web.Basic
             {
                 //路径模式
 
-                if (httpRequest.Path.StartsWith(BambookRest, StringComparison.OrdinalIgnoreCase))
-                    s = httpRequest.Path.Substring(BambookRest.Length).Trim('/');
+                if (httpRequest.Path.StartsWith(RestPrefix, StringComparison.OrdinalIgnoreCase))
+                    s = httpRequest.Path.Substring(RestPrefix.Length).Trim('/');
                 else
                     s = httpRequest.Path.Trim('/');
 
@@ -114,7 +117,7 @@ namespace Zata.Web.Basic
             if (string.IsNullOrEmpty(httpContext.Request.CurrentExecutionFilePathExtension))
                 return true;
 
-            //兼容Bambook逻辑, 检查相关上下文参数
+            //检查相关上下文参数
             if (RegistedHandlerPaths.Contains(httpContext.Request.CurrentExecutionFilePath.ToLower()))
                 return true;
 

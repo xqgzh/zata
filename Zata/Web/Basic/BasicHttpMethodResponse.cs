@@ -93,7 +93,7 @@ namespace Zata.Web.Basic
         /// <returns></returns>
         static string GetAcceptType(HttpRequest httpRequest)
         {
-            /* Bambook逻辑
+            /* 
              * 1. 首先检查xml参数确定是否返回xml
              * 2. 其次检查format参数确定返回类型
              * 3. 上述都不存在, 返回json格式
@@ -126,8 +126,8 @@ namespace Zata.Web.Basic
 
             acceptMediaTypes = acceptMediaTypes.ToLower();
 
-            if (MediaTypes.BambookMimeTypes.ContainsKey(acceptMediaTypes))
-                acceptMediaTypes = MediaTypes.BambookMimeTypes[acceptMediaTypes];
+            if (MediaTypes.MimeTypesDictionary.ContainsKey(acceptMediaTypes))
+                acceptMediaTypes = MediaTypes.MimeTypesDictionary[acceptMediaTypes];
             else //默认返回XML文本
                 acceptMediaTypes = MediaTypes.Application.Json;
 

@@ -7,23 +7,23 @@ namespace Zata.Web.Basic
 {
     public static class MediaTypes
     {
-        #region Bambook中MimeTypes的类型映射
+        #region MimeTypes的类型映射
 
         /// <summary>
-        /// 在bambook中, 存在一些项目特点的类型, 通过此字典与标准的Mime类型进行映射
+        /// 存在一些项目特点的类型, 通过此字典与标准的Mime类型进行映射
         /// </summary>
-        public static Dictionary<string, string> BambookMimeTypes = new Dictionary<string, string>();
+        public static Dictionary<string, string> MimeTypesDictionary = new Dictionary<string, string>();
 
         static MediaTypes()
         {
-            BambookMimeTypes.Add(Text.Xml, Text.Xml);
-            BambookMimeTypes.Add(MediaTypes.Application.Json, MediaTypes.Application.Json);
-            BambookMimeTypes.Add(MediaTypes.Application.OctetStream, MediaTypes.Application.OctetStream);
+            MimeTypesDictionary.Add(Text.Xml, Text.Xml);
+            MimeTypesDictionary.Add(MediaTypes.Application.Json, MediaTypes.Application.Json);
+            MimeTypesDictionary.Add(MediaTypes.Application.OctetStream, MediaTypes.Application.OctetStream);
 
             //兼容处理
-            BambookMimeTypes.Add("xml", Text.Xml);
-            BambookMimeTypes.Add("json", MediaTypes.Application.Json);
-            BambookMimeTypes.Add("binary1", MediaTypes.Application.OctetStream);
+            MimeTypesDictionary.Add("xml", Text.Xml);
+            MimeTypesDictionary.Add("json", MediaTypes.Application.Json);
+            MimeTypesDictionary.Add("binary1", MediaTypes.Application.OctetStream);
         }
 
         #endregion

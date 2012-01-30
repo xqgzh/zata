@@ -9,7 +9,7 @@ namespace Zata.Web
 {
     public abstract class HttpMethodContext : ActionContext
     {
-        protected IAction CurrentAction;
+        protected IAction Action;
 
         protected HttpContext HttpContext;
 
@@ -21,7 +21,7 @@ namespace Zata.Web
         {
             try
             {
-                CurrentAction.Execute(this);
+                Action.Execute(this);
             }
             catch (Exception ex)
             {
