@@ -7,6 +7,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using Zata.Dynamic;
+using System.Threading;
 
 namespace TestConsole
 {
@@ -16,7 +17,7 @@ namespace TestConsole
         {
             Stopwatch sw = new Stopwatch();
 
-            int MaxTimes = 1000000;
+            int MaxTimes = 100;
             TT t = new TT();
             MethodInfo mi = t.GetType().GetMethod("Test");
             MethodWrapper invoker = new MethodWrapper(t.GetType().GetCustomAttributes(false), true, () => { return new TT(); }, t, mi, mi.GetCustomAttributes(false));
@@ -103,6 +104,7 @@ namespace TestConsole
             string a,
             string b)
         {
+            Thread.Sleep(10);
             return a + b;
             //return a + b;
         }
