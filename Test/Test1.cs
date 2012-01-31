@@ -15,6 +15,8 @@ namespace TestConsole
     {
         public static void TestPerf()
         {
+
+
             Stopwatch sw = new Stopwatch();
 
             int MaxTimes = 100;
