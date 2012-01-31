@@ -32,7 +32,7 @@ namespace TestConsole
                 oInstance = t
             };
 
-            Test(MaxTimes,
+            Test(5, MaxTimes,
                 (i, w) => {
                     string s = string.Empty;
 
@@ -60,31 +60,35 @@ namespace TestConsole
                 );
         }
 
-        public static void Test(int MaxTimes, Action<int, Stopwatch> watcher, params Action<int>[] funcList)
+        static void Test(int RepeatTimes, int MaxTimes, Action<int, Stopwatch> watcher, params Action<int>[] funcList)
         {
+            Console.WriteLine("执行{0}次, 重复{1}遍", MaxTimes, RepeatTimes);
             Stopwatch sw = new Stopwatch();
 
             if (watcher == null)
                 watcher = (a, b) => { Console.WriteLine("{0} : {1}", a, b.Elapsed); };
 
-
-            for (int r = 0, j = funcList.Length; r < j; r++)
+            for (int v = 0; v < RepeatTimes; v++)
             {
-                var a = funcList[r];
-                if (a != null)
+                Console.WriteLine("================= 第 {0} 遍 ===================", v+1);
+                for (int r = 0, j = funcList.Length; r < j; r++)
                 {
-                    //初始化
-                    a(0);
-
-                    sw.Reset();
-                    sw.Start();
-                    for (int i = 0; i < MaxTimes; i++)
+                    var a = funcList[r];
+                    if (a != null)
                     {
-                        a(i);
-                    }
-                    sw.Stop();
+                        //初始化
+                        a(0);
 
-                    watcher(r, sw);
+                        sw.Reset();
+                        sw.Start();
+                        for (int i = 0; i < MaxTimes; i++)
+                        {
+                            a(i);
+                        }
+                        sw.Stop();
+
+                        watcher(r, sw);
+                    }
                 }
             }
         }

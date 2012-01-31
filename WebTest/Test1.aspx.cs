@@ -15,7 +15,10 @@ namespace WebUI
             Response.Redirect("~/Test2.aspx");
         }
 
-        public string Test(string a, string b, string c)
+
+        [CachedMethodAttribute]
+        public string Test(
+            string a, string b, string c)
         {
             return string.Format("<a>{0}</a><b>{1}</b><c>{2}</c>", a, b, c);
         }

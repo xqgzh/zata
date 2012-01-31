@@ -10,6 +10,7 @@ namespace Zata.Dynamic
     {
         public ActionBuilder()
         {
+            ActionTypeList.Add(typeof(CachedMethodAttribute));
             ActionTypeList.Add(typeof(ArgumentConvertAction));
         }
 

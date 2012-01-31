@@ -47,9 +47,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dynamic\AbstractAction.cs" />
+    <Compile Include="Dynamic\AbstractMethodAttribute.cs" />
     <Compile Include="Dynamic\ActionBuilder.cs" />
     <Compile Include="Dynamic\ActionContext.cs" />
     <Compile Include="Dynamic\ArgumentConvertAction.cs" />
+    <Compile Include="Dynamic\CachedKeyAttribute.cs" />
+    <Compile Include="Dynamic\CachedMethodAttribute.cs" />
     <Compile Include="Dynamic\IAction.cs" />
     <Compile Include="Dynamic\MethodGenerater.cs" />
     <Compile Include="Dynamic\MethodWrapper.cs" />

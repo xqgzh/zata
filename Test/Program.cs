@@ -12,7 +12,7 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
-
+            Test1.TestPerf();
         }
 
         

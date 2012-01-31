@@ -26,7 +26,7 @@ namespace Zata.Web
 
         public HttpMethodBuilder()
         {
-            HttpProtocolList.Add(typeof(Basic.BasicHttpMethodProtocol));
+            HttpProtocolList.Add(typeof(BasicHttpMethodProtocol));
         }
 
 
@@ -41,7 +41,7 @@ namespace Zata.Web
 
                 if (!string.IsNullOrEmpty(MethodKey))
                 {
-                    IAction action = base.FindAction(MethodKey);
+                    IAction action = FindAction(MethodKey);
 
                     if (action != null)
                     {
@@ -53,7 +53,6 @@ namespace Zata.Web
             }
 
             //添加其他类型的Action
-
             return null;
         }
 
