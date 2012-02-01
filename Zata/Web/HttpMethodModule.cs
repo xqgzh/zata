@@ -26,7 +26,7 @@ namespace Zata.Web
 
         public void Init(HttpApplication context)
         {
-            context.BeginRequest += new EventHandler(BeginRequest);
+            context.PreRequestHandlerExecute += new EventHandler(BeginRequest);
             context.EndRequest += new EventHandler(EndRequest);
         }
 
@@ -69,9 +69,9 @@ namespace Zata.Web
                     httpAction.FormatResponse();
                 }
             }
-            catch
+            catch(Exception ex)
             {
-
+                Trace.Write(ex);
             }
         }
 

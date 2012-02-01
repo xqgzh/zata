@@ -10,7 +10,7 @@ namespace Zata.Dynamic
     /// </summary>
     public class CachedMethodAttribute : AbstractMethodAttribute
     {
-        static Cache cacheManager = HttpRuntime.Cache;
+        protected static Cache cacheManager = HttpRuntime.Cache;
 
         /// <summary>
         /// 默认过期时间
@@ -20,7 +20,7 @@ namespace Zata.Dynamic
         /// <summary>
         /// 缓存键设置
         /// </summary>
-        protected string CacheKeyFormater = string.Empty;
+        public string CacheKeyFormater = string.Empty;
 
         /// <summary>
         /// 默认构造
@@ -43,7 +43,8 @@ namespace Zata.Dynamic
         {
             #region 构造缓存键
 
-            CacheKeyFormater = Proxy.methodInfo.Name;
+            CacheKeyFormater += Proxy.methodInfo.Name;
+
 
             ParamInfo[] paras = Proxy.Parameters;
 

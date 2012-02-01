@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Zata.Dynamic;
+using System.Web.Caching;
 
 namespace Zata.Web
 {
@@ -21,10 +22,7 @@ namespace Zata.Web
     {
         protected override bool Config()
         {
-            if (!base.Config())
-            {
-                return false;
-            }
+            base.Config();
 
             CacheKeyFormater = this.GetType().Name + "_" + CacheKeyFormater;
 
@@ -33,12 +31,26 @@ namespace Zata.Web
 
         public override void Execute(ActionContext Context)
         {
-            base.Execute(Context);
+            string CacheKey = string.Format(CacheKeyFormater, Context.Arguments);
+
+            Context.Result = cacheManager.Get(CacheKey);
+
+            if (Context.Result == null)
+            {
+                base.Execute(Context);
+            }
         }
 
-        internal void AddCache(HttpMethodResult WebResult)
+        internal void AddCache(ActionContext Context, HttpMethodResult WebResult)
         {
-            throw new NotImplementedException();
+            string CacheKey = string.Format(CacheKeyFormater, Context.Arguments);
+            DateTime CurrentTime = DateTime.Now;
+            cacheManager.Add(
+                CacheKey,
+                WebResult,
+                null,
+                DateTime.Now.AddSeconds(DefaultExpireSeconds),
+                TimeSpan.Zero, CacheItemPriority.Default, null);
         }
     }
 }

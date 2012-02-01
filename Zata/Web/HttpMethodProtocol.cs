@@ -5,6 +5,9 @@ using System.Text;
 using System.Web;
 using Zata.Dynamic;
 using System.Web.Caching;
+using System.Diagnostics;
+using System.Reflection;
+using System.IO;
 
 namespace Zata.Web
 {
@@ -28,6 +31,7 @@ namespace Zata.Web
         public string Accept(HttpContext httpContext)
         {
             string s = GetMethodKey(httpContext.Request);
+
 
             if (!string.IsNullOrEmpty(s))
                 WebContext = httpContext;
@@ -55,6 +59,22 @@ namespace Zata.Web
             CurrentAction = action;
 
             Config();
+
+            //HttpWriter x = WebContext.Response.GetType().GetField("_httpWriter", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(WebContext.Response) as HttpWriter;
+
+            //FieldInfo filedStream = x.GetType().GetField("_stream", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            //Stream stream = filedStream.GetValue(x) as Stream;
+
+            //HttpResponseFilter filter = new HttpResponseFilter(stream);
+
+            //filedStream.SetValue(x, filter);
+
+            ////x.GetType().GetField("_stream").SetValue(x, filter);
+            
+
+            //WebContext.Response.Write("!324");
+
 
             //检查缓存配置
             foreach (object attr in CurrentAction.Proxy.MethodAttributes)
@@ -102,12 +122,17 @@ namespace Zata.Web
                 }
                 else
                 {
+                    WebResult = new HttpMethodResult();
                     //缓存未命中
+
                     Response();
 
-                    //CacheProvider.AddCache(WebResult);
+                    //WebResult.ByteStream = filter.ToByteArray();
 
+                    //CacheProvider.AddCache(WebResult);
                     Format(WebResult);
+
+                    CacheProvider.AddCache(this, WebResult);
                 }
             }
             else
@@ -117,17 +142,16 @@ namespace Zata.Web
             }
         }
 
-        private void Format(HttpMethodResult CacheResult)
+        void Format(HttpMethodResult WebResult)
         {
-            throw new NotImplementedException();
+            if(WebResult != null && WebResult.ByteStream != null)
+            WebContext.Response.OutputStream.Write(WebResult.ByteStream, 0, WebResult.ByteStream.Length);
         }
-
 
         /// <summary>
         /// 格式化输出
         /// </summary>
         protected abstract void Response();
-
 
         /// <summary>
         /// 配置上下文
