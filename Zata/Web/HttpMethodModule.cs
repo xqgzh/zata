@@ -39,14 +39,14 @@ namespace Zata.Web
             //处理多语言问题
             InitCulture(httpContext.Request);
 
-            HttpMethodBuilder.CurrentAction = MethodBuilder.FindMethod(httpContext);
+            HttpMethodBuilder.CurrentProtocol = MethodBuilder.FindMethod(httpContext);
 
-            if (HttpMethodBuilder.CurrentAction != null)
+            if (HttpMethodBuilder.CurrentProtocol != null)
             {
-                HttpMethodBuilder.CurrentAction.Execute(HttpMethodBuilder.CurrentAction);
+                HttpMethodBuilder.CurrentProtocol.ExecuteAction();
                 
                 //根据上下文决定是否由框架处理请求
-                if (HttpMethodBuilder.CurrentAction.IsFormat)
+                if (HttpMethodBuilder.CurrentProtocol.IsSkipResponse)
                     httpApplication.CompleteRequest();
             }
         }
@@ -61,12 +61,12 @@ namespace Zata.Web
                 HttpRequest httpRequest = httpApplication.Request;
                 HttpResponse httpResponse = httpApplication.Response;
 
-                HttpMethodProtocol httpAction = HttpMethodBuilder.CurrentAction;
+                HttpMethodProtocol httpAction = HttpMethodBuilder.CurrentProtocol;
 
-                if (httpAction != null && httpAction.IsFormat)
+                if (httpAction != null && httpAction.IsSkipResponse)
                 {
                     httpAction.Result = Convert.ToString(httpAction.Result) + DateTime.Now.Second;
-                    httpAction.Format();
+                    httpAction.FormatResponse();
                 }
             }
             catch

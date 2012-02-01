@@ -13,11 +13,6 @@ namespace Zata.Dynamic
         static Cache cacheManager = HttpRuntime.Cache;
 
         /// <summary>
-        /// 是否缓存
-        /// </summary>
-        public bool IsCached { get; set; }
-
-        /// <summary>
         /// 默认过期时间
         /// </summary>
         public int DefaultExpireSeconds { get; set; }

@@ -9,18 +9,18 @@ namespace Zata.Web.Basic
 {
     class BasicHttpMethodProtocol : HttpMethodProtocol
     {
-        public override void Format()
+        protected override void Response()
         {
-            new BasicHttpMethodResponse().ProcessResponse(HttpContext, this);
+            new BasicHttpMethodResponse().ProcessResponse(WebContext, this);
         }
 
         protected virtual void InitArguments()
         {
-            Arguments = new object[Proxy.Parameters.Length];
-            for (int i = 0, j = Proxy.Parameters.Length; i < j; i++)
+            Arguments = new object[CurrentAction.Proxy.Parameters.Length];
+            for (int i = 0, j = CurrentAction.Proxy.Parameters.Length; i < j; i++)
             {
-                var p = Proxy.Parameters[i];
-                string para = HttpContext.Request[p.Name];
+                var p = CurrentAction.Proxy.Parameters[i];
+                string para = WebContext.Request[p.Name];
 
                 Arguments[i] = para;
             }
@@ -32,7 +32,7 @@ namespace Zata.Web.Basic
             InitArguments();
 
             //装配Action
-            IsFormat = IsWebMethodHandleResponse(HttpContext);
+            IsSkipResponse = IsWebMethodHandleResponse(WebContext);
         }
 
         #region 通过HTTP上下文获取方法名称

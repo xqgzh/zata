@@ -19,11 +19,6 @@ namespace Zata.Web
         /// </summary>
         protected List<Type> HttpProtocolList = new List<Type>();
 
-        /// <summary>
-        /// WebContext
-        /// </summary>
-        protected List<Func<HttpContext, string>> AccepterList = new List<Func<HttpContext, string>>();
-
         public HttpMethodBuilder()
         {
             HttpProtocolList.Add(typeof(BasicHttpMethodProtocol));
@@ -45,7 +40,7 @@ namespace Zata.Web
 
                     if (action != null)
                     {
-                        protocol.Init(action.Proxy, action);
+                        protocol.Init(action);
 
                         return protocol;
                     }
@@ -57,7 +52,7 @@ namespace Zata.Web
         }
 
         [ThreadStatic]
-        public static HttpMethodProtocol CurrentAction;
+        public static HttpMethodProtocol CurrentProtocol;
 
     }
 }
