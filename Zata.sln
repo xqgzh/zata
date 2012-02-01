@@ -7,7 +7,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebTest", "WebTest\WebTest.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{87CEFD2F-28AE-4ECF-9342-B76049C1BA01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zata.Test", "Zata.Test\Zata.Test.csproj", "{32B1772D-0717-4ED0-A373-F7C1B5D78E51}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0D56F40B-98F1-4B4B-A566-D3BA9CFB32FE}"
+	ProjectSection(SolutionItems) = preProject
+		Local.testsettings = Local.testsettings
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+		Zata.vsmdi = Zata.vsmdi
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = Zata.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -47,6 +59,16 @@ Global
 		{87CEFD2F-28AE-4ECF-9342-B76049C1BA01}.Release|Mixed Platforms.Build.0 = Release|x86
 		{87CEFD2F-28AE-4ECF-9342-B76049C1BA01}.Release|x86.ActiveCfg = Release|x86
 		{87CEFD2F-28AE-4ECF-9342-B76049C1BA01}.Release|x86.Build.0 = Release|x86
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{32B1772D-0717-4ED0-A373-F7C1B5D78E51}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
