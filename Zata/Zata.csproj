@@ -77,19 +77,21 @@
     <Compile Include="FastReflection\ExtensionMethods.cs" />
     <Compile Include="FastReflection\GenericAccessorMap.cs" />
     <Compile Include="FastReflection\GlobalAccessorMap.cs" />
-    <Compile Include="Web\Basic\BasicHttpMethodProtocol.cs" />
-    <Compile Include="Web\Basic\BasicHttpMethodResponse.cs" />
-    <Compile Include="Web\Basic\MediaTypes.cs" />
-    <Compile Include="Web\HttpCacheAction.cs" />
-    <Compile Include="Web\HttpCacheProvider.cs" />
-    <Compile Include="Web\HttpMethodBuilder.cs" />
-    <Compile Include="Web\HttpMethodProtocol.cs" />
-    <Compile Include="Web\HttpMethodModule.cs" />
+    <Compile Include="Web\AbstractHttpProtocol.cs" />
+    <Compile Include="Web\Protocols\BasicHttpProtocol.cs" />
+    <Compile Include="Web\Protocols\BasicHttpResponse.cs" />
+    <Compile Include="Web\Protocols\MediaTypes.cs" />
+    <Compile Include="Web\HttpActionContext.cs" />
+    <Compile Include="Web\Actions\HttpCacheAction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Web\HttpActionBuilder.cs" />
+    <Compile Include="Web\HttpActionRequest.cs" />
+    <Compile Include="Web\HttpActionModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\SerializeHelper.cs" />
     <Compile Include="Util\XmlTools.cs" />
-    <Compile Include="Web\HttpMethodCacheAttribute.cs" />
-    <Compile Include="Web\HttpMethodResult.cs" />
+    <Compile Include="Web\IHttpAction.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
