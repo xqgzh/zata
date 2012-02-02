@@ -110,7 +110,7 @@ namespace Zata.Dynamic
         /// <param name="methodInfo"></param>
         /// <param name="methodAttributes"></param>
         /// <returns></returns>
-        public virtual IAction CreateAction(
+        protected virtual IAction CreateAction(
             object[] typeAtrributes, bool isCreateIfRequest,  Func<object> creater, object globaInstance, 
             MethodInfo methodInfo, object[] methodAttributes)
         {
@@ -121,7 +121,7 @@ namespace Zata.Dynamic
             //根据全局Action列表初始化当前流程的Action列表
             foreach (Type t in ActionTypeList)
             {
-                IAction action = CreateAction(t, typeAtrributes, methodAttributes);
+                IAction action = CreateAction<IAction>(t, typeAtrributes, methodAttributes);
 
                 if (action != null)
                 {
@@ -151,16 +151,16 @@ namespace Zata.Dynamic
         /// <param name="typeAtrributes"></param>
         /// <param name="methodAttributes"></param>
         /// <returns></returns>
-        IAction CreateAction(Type actionType, object[] typeAtrributes, object[] methodAttributes)
+        protected T CreateAction<T>(Type actionType, object[] typeAtrributes, object[] methodAttributes)
         {
-            IAction action = null;
+            T action = default(T);
 
             //在当前的上下文属性中寻找匹配的IAction
             foreach (object o in typeAtrributes)
             {
                 if (actionType.IsInstanceOfType(o))
                 {
-                    action = o as IAction;
+                    action = (T)o;
                     if (action != null)
                         break;
                 }
@@ -172,7 +172,7 @@ namespace Zata.Dynamic
                 {
                     if (actionType.IsInstanceOfType(o))
                     {
-                        action = o as IAction;
+                        action = (T)o;
                         if (action != null)
                             break;
                     }
@@ -182,7 +182,7 @@ namespace Zata.Dynamic
             if (action == null)
             {
                 //没有找到匹配的IAction, 直接创建IAction
-                action = Activator.CreateInstance(actionType) as IAction;
+                action = (T)Activator.CreateInstance(actionType);
             }
 
             return action;

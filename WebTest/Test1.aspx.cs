@@ -6,6 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Zata.Dynamic;
 using Zata.Web;
+using Zata.Web.Actions;
 
 namespace WebUI
 {
@@ -16,7 +17,7 @@ namespace WebUI
             Response.Redirect("~/Test2.aspx");
         }
 
-        [HttpMethodCache]
+        [HttpCacheAction]
         [CachedMethodAttribute]
         public string Test(
             string a, string b, string c)
@@ -29,5 +30,6 @@ namespace WebUI
             
             base.OnError(e);
         }
+
     }
 }

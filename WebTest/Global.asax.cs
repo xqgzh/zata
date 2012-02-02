@@ -12,7 +12,7 @@ namespace WebUI
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            HttpMethodModule.MethodBuilder.RegistType<Test1>().RegistType<Test2>();
+            HttpActionModule.MethodBuilder.RegistType<Test1>().RegistType<Test2>();
         }
 
         protected void Session_Start(object sender, EventArgs e)

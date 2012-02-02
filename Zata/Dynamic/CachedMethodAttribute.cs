@@ -20,7 +20,7 @@ namespace Zata.Dynamic
         /// <summary>
         /// 缓存键设置
         /// </summary>
-        public string CacheKeyFormater = string.Empty;
+        string CacheKeyFormater = string.Empty;
 
         /// <summary>
         /// 默认构造

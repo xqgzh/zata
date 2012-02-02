@@ -21,5 +21,14 @@ namespace Zata.Dynamic
         /// 执行结果
         /// </summary>
         public object Result;
+
+        public ActionContext() { }
+
+        public ActionContext(ActionContext context)
+        {
+            oInstance = context.oInstance;
+            Arguments = context.Arguments;
+            Result = context.Result;
+        }
     }
 }
