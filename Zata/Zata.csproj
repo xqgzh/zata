@@ -67,6 +67,7 @@
     <Compile Include="FastReflection\Accessors\NonGenerics\ExpressionPropertyAccessor.cs" />
     <Compile Include="FastReflection\Accessors\NonGenerics\GetPropertyExecutor.cs" />
     <Compile Include="FastReflection\Accessors\NonGenerics\IPropertyAccessor.cs" />
+    <Compile Include="FastReflection\Accessors\NonGenerics\NoOpAccessor.cs" />
     <Compile Include="FastReflection\Accessors\NonGenerics\SetPropertyExecutor.cs" />
     <Compile Include="FastReflection\Caching\DictionaryAccessorCache.cs" />
     <Compile Include="FastReflection\Caching\GlobalAccessorKeyStrategy.cs" />

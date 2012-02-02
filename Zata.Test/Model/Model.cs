@@ -8,7 +8,7 @@ namespace Zata.Test
     /// <summary>
     /// 
     /// </summary>
-    public class DataObjectModel : DynamicModel, IDataObject
+    public class DataObjectModel : DynamicModel, IDataObject, ICloneable
     {
         private static DictionaryAccessorCache cache = new DictionaryAccessorCache(new GenericAccessorFactory(), InClassAccessorKeyStrategy.Instance);
         static DataObjectModel()
@@ -57,6 +57,15 @@ namespace Zata.Test
                 default:
                     return null;
             }
+        }
+
+        #endregion
+
+        #region ICloneable Members
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
 
         #endregion

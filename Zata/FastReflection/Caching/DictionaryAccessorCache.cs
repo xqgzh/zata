@@ -49,7 +49,7 @@ namespace Zata.FastReflection.Caching
         public IPropertyAccessor FindPropertyAccessor(Type type, string propertyName)
         {
             var key = GetAccessorKey(type, propertyName);
-            IPropertyAccessor accessor = null;
+            IPropertyAccessor accessor = NoOpAccessor.Instance;
             accessors.TryGetValue(key, out accessor);
 
             return accessor;
@@ -58,7 +58,7 @@ namespace Zata.FastReflection.Caching
         public IGenericPropertyAccessor<T, P> FindPropertyAccessor<T, P>(string propertyName)
         {
             var key = GetAccessorKey(typeof(T), propertyName);
-            IPropertyAccessor accessor = null;
+            IPropertyAccessor accessor = NoOpAccessor.Instance;
             accessors.TryGetValue(key, out accessor);
 
             return accessor as IGenericPropertyAccessor<T, P>;
