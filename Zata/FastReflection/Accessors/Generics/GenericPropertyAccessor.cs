@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection.Emit;
 
 namespace Zata.FastReflection.Accessors.Generics
 {
@@ -15,19 +16,45 @@ namespace Zata.FastReflection.Accessors.Generics
         private GetPropertyDelegate getPropertyDelegate;
         private SetPropertyDelegate setPropertyDelegate;
 
-        public GenericPropertyAccessor(string propertyName)
+        public GenericPropertyAccessor(string memberName)
         {
             var type = typeof(T);
-            var getMethodInfo = type.GetMethod("get_" + propertyName);
-            var setMethodInfo = type.GetMethod("set_" + propertyName);
-            if (getMethodInfo == null && setMethodInfo == null)
-                throw new ArgumentException();
+            var propertyInfo = type.GetProperty(memberName);
+            var fieldInfo = type.GetField(memberName);
+            if (propertyInfo != null)
+            {
+                var getMethodInfo = type.GetMethod("get_" + memberName);
+                var setMethodInfo = type.GetMethod("set_" + memberName);
 
-            if (getMethodInfo != null)
-                getPropertyDelegate = (GetPropertyDelegate)Delegate.CreateDelegate(typeof(GetPropertyDelegate), getMethodInfo);
+                if (getMethodInfo != null)
+                    getPropertyDelegate = (GetPropertyDelegate)Delegate.CreateDelegate(typeof(GetPropertyDelegate), getMethodInfo);
 
-            if (setMethodInfo != null)
-                setPropertyDelegate = (SetPropertyDelegate)Delegate.CreateDelegate(typeof(SetPropertyDelegate), setMethodInfo);
+                if (setMethodInfo != null)
+                    setPropertyDelegate = (SetPropertyDelegate)Delegate.CreateDelegate(typeof(SetPropertyDelegate), setMethodInfo);
+            }
+            else if (fieldInfo != null)
+            {
+                var dynamicGet = new DynamicMethod("get_" + memberName, typeof(P), new[] { type }, type);
+                var ilEmitor = dynamicGet.GetILGenerator();
+                ilEmitor.Emit(OpCodes.Ldarg_0);
+                ilEmitor.Emit(OpCodes.Ldfld, fieldInfo);
+                ilEmitor.Emit(OpCodes.Ret);
+
+                getPropertyDelegate = (GetPropertyDelegate)dynamicGet.CreateDelegate(typeof(GetPropertyDelegate));
+
+                var dynamicSet = new DynamicMethod("set_" + memberName, typeof(void), new[] { type, typeof(P) }, type);
+                ilEmitor = dynamicSet.GetILGenerator();
+                ilEmitor.Emit(OpCodes.Ldarg_0);
+                ilEmitor.Emit(OpCodes.Ldarg_1);
+                ilEmitor.Emit(OpCodes.Stfld, fieldInfo);
+                ilEmitor.Emit(OpCodes.Ret);
+
+                setPropertyDelegate = (SetPropertyDelegate)dynamicSet.CreateDelegate(typeof(SetPropertyDelegate));
+            }
+            else
+            {
+                throw new ArgumentException(String.Format("Member: '{0}' is not a Public Property or Field of Type: '{1}'", memberName, type.Name));
+            }
         }
 
         #region IPropertyAccessor<T,PropertyType> Members

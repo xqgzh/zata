@@ -33,6 +33,8 @@ namespace Zata.Test
                 case "Namespace": Namespace = Convert.ToString(dataValue); break;
                 case "Hash": Hash = Convert.ToString(dataValue); break;
                 case "ReferenceCount": ReferenceCount = Convert.ToString(dataValue); break;
+                case "NameField": NameField = Convert.ToString(dataValue); break;
+                case "KeyField": KeyField = Convert.ToString(dataValue); break;
                 default:
                     return false;
             }
@@ -50,6 +52,8 @@ namespace Zata.Test
                 case "Namespace": return Namespace;
                 case "Hash": return Hash;
                 case "ReferenceCount": return ReferenceCount;
+                case "NameField": return NameField;
+                case "KeyField": return KeyField;
                 default:
                     return null;
             }
@@ -77,6 +81,10 @@ namespace Zata.Test
         public string Hash { get; set; }
 
         public string ReferenceCount { get; set; }
+
+        public string NameField;
+
+        public string KeyField;
 
         #region IAccessorCacheHost Members
 

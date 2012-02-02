@@ -11,9 +11,29 @@ namespace Zata.FastReflection
             return GlobalAccessorMap.Current.FindPropertyAccessor(obj.GetType(), propertyName).GetProperty(obj);
         }
 
+        /// <summary>
+        /// 推荐
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
         public static object GetPropertyValue<T>(this T obj, string propertyName)
         {
             return GenericAccessorMap<T>.Current.FindPropertyAccessor(obj.GetType(), propertyName).GetProperty(obj);
+        }
+
+        /// <summary>
+        /// 这个速度更慢
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="P"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public static P GetPropertyValue<T, P>(this T obj, string propertyName)
+        {
+            return GenericAccessorMap<T>.Current.FindPropertyAccessor<T, P>(propertyName).GetProperty(obj);
         }
 
         public static object GetPropertyValue(this IAccessorCacheHost obj, string propertyName)
@@ -29,6 +49,11 @@ namespace Zata.FastReflection
         public static void SetPropertyValue<T>(this T obj, string propertyName, object value)
         {
             GenericAccessorMap<T>.Current.FindPropertyAccessor(obj.GetType(), propertyName).SetProperty(obj, value);
+        }
+
+        public static void SetPropertyValue<T, P>(this T obj, string propertyName, P value)
+        {
+            GenericAccessorMap<T>.Current.FindPropertyAccessor<T, P>(propertyName).SetProperty(obj, value);
         }
 
         public static void SetPropertyValue(this IAccessorCacheHost obj, string propertyName, object value)
