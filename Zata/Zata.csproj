@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -80,12 +81,15 @@
     <Compile Include="Web\Basic\BasicHttpMethodResponse.cs" />
     <Compile Include="Web\Basic\MediaTypes.cs" />
     <Compile Include="Web\HttpCacheAction.cs" />
+    <Compile Include="Web\HttpCacheProvider.cs" />
     <Compile Include="Web\HttpMethodBuilder.cs" />
     <Compile Include="Web\HttpMethodProtocol.cs" />
     <Compile Include="Web\HttpMethodModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\SerializeHelper.cs" />
     <Compile Include="Util\XmlTools.cs" />
+    <Compile Include="Web\HttpMethodCacheAttribute.cs" />
+    <Compile Include="Web\HttpMethodResult.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

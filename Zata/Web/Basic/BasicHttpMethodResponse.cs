@@ -65,6 +65,7 @@ namespace Zata.Web.Basic
             //写入Response
             httpContext.Response.ContentEncoding = Encoding.UTF8;
 
+            
             httpContext.Response.ContentType = acceptType;
 
             //if (IsCompressed || SingnedBinary != null)
@@ -77,9 +78,9 @@ namespace Zata.Web.Basic
             //if (SingnedBinary != null)
             //    httpContext.Response.OutputStream.Write(SingnedBinary, 0, SingnedBinary.Length);
 
-            
-            httpContext.Response.OutputStream.Write(ResultBinary, 0, ResultBinary.Length);
-            httpContext.Response.Flush();
+            httpContext.Response.Write("test");
+            httpContext.Response.BinaryWrite(ResultBinary);
+            //httpContext.Response.Flush();
         }
 
         #endregion
