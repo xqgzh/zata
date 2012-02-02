@@ -57,20 +57,21 @@ namespace ObjKnife.Test
             var obj = new DataObjectModel();
             var cachHost = obj as IAccessorCacheHost;
             object glocalInstance = obj;
-            string propertyName = "ReferenceCount";
+            string propertyName = "NameField";
             ExtensionMethods.GetPropertyValue(obj, propertyName);
             var func = (Func<DataObjectModel, string>)Delegate.CreateDelegate(typeof(Func<DataObjectModel, string>), typeof(DataObjectModel).GetMethod("get_ReferenceCount"));
 
 
-            var directCall = new PerformanceTimer(() => { var value = (obj as DataObjectModel).ReferenceCount; }).Run(10000000);
+            var directCall = new PerformanceTimer(() => { (obj as DataObjectModel).NameField = (obj as DataObjectModel).Name; }).Run(10000000);
             var delegateCall = new PerformanceTimer(() => { var value = func(obj); }).Run(10000000);
-            var interfaceCall = new PerformanceTimer(() => { var value = (obj as IDataObject).GetValue(propertyName); }).Run(10000000);
-            var globalCacheCall = new PerformanceTimer(() => { var value = glocalInstance.GetPropertyValue(propertyName); }).Run(10000000);
-            var dynamicCall = new PerformanceTimer(() => { var value = obj.GetPropertyValue(propertyName); }).Run(10000000);
-            var inClassCacheCall = new PerformanceTimer(() => { var value = cachHost.GetPropertyValue(propertyName); }).Run(10000000);
+            var interfaceCall = new PerformanceTimer(() => { (obj as IDataObject).SetValue(propertyName, (obj as IDataObject).GetValue(propertyName)); }).Run(10000000);
+            var globalCacheCall = new PerformanceTimer(() => { glocalInstance.SetPropertyValue(propertyName, glocalInstance.GetPropertyValue(propertyName)); }).Run(10000000);
+            var dynamicCall = new PerformanceTimer(() => { obj.SetPropertyValue(propertyName, obj.GetPropertyValue(propertyName)); }).Run(10000000);
+            var genericCall = new PerformanceTimer(() => { obj.SetPropertyValue<DataObjectModel, string>(propertyName, obj.GetPropertyValue<DataObjectModel, string>(propertyName)); }).Run(10000000);
+            var inClassCacheCall = new PerformanceTimer(() => { cachHost.SetPropertyValue(propertyName, cachHost.GetPropertyValue(propertyName)); }).Run(10000000);
             var reflectionCall = 0; // new PerformanceTimer(() => { var value = obj.GetPropertyValueByReflection(propertyName); }).Run(10000000);
 
-            Trace.WriteLine(String.Format("直调用时{0}, 委托调用{1}，接口调用用时{2}， 全局缓存{3}，泛型缓存用时{4}， 类内缓存{5}，反射调用用时{6}", directCall, delegateCall, interfaceCall, globalCacheCall, dynamicCall, inClassCacheCall, reflectionCall));
+            Trace.WriteLine(String.Format("直调用时{0}, 委托调用{1}，接口调用用时{2}， 全局缓存{3}，泛型缓存用时{4}， 泛型缓存+调用用时{5}， 类内缓存{6}，反射调用用时{7}", directCall, delegateCall, interfaceCall, globalCacheCall, dynamicCall, genericCall, inClassCacheCall, reflectionCall));
             Assert.IsTrue(dynamicCall > directCall);
 
             Trace.WriteLine(String.Format("相对直调减速比为{0}", inClassCacheCall.TotalMilliseconds / directCall.TotalMilliseconds));
@@ -92,7 +93,21 @@ namespace ObjKnife.Test
                     var value = (obj as IAccessorCacheHost).GetPropertyValue(property.Name);
                 }
             }).Run(10000000);
+        }
 
+        [TestMethod]
+        public void RuntimeType()
+        {
+            var obj = new DataObjectModel();
+            var obj2 = new DataObjectModel();
+            var type1 = obj.GetType();
+            var type2 = obj2.GetType();
+
+            var properties1 = type1.GetProperties();
+            var properties2 = type2.GetProperties();
+
+            Assert.IsTrue(Object.ReferenceEquals(type1, type2));
+            Assert.IsFalse(Object.ReferenceEquals(properties1, properties2));
         }
 
         [TestMethod]
