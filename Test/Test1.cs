@@ -16,7 +16,7 @@ namespace TestConsole
         public static void TestPerf()
         {
 
-            //这次测试中文
+            //这次测试中文1234
             Stopwatch sw = new Stopwatch();
 
             int MaxTimes = 100;
