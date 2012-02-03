@@ -78,6 +78,7 @@
     <Compile Include="FastReflection\GenericAccessorMap.cs" />
     <Compile Include="FastReflection\GlobalAccessorMap.cs" />
     <Compile Include="Web\AbstractHttpProtocol.cs" />
+    <Compile Include="Web\HttpActionResponse.cs" />
     <Compile Include="Web\Protocols\BasicHttpProtocol.cs" />
     <Compile Include="Web\Protocols\BasicHttpResponse.cs" />
     <Compile Include="Web\Protocols\MediaTypes.cs" />

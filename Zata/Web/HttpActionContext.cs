@@ -10,6 +10,12 @@ namespace Zata.Web
 {
     public class HttpActionContext : ActionContext, IDisposable
     {
+        public string CacheKey;
+
+        public bool IsCached = false;
+
+        public HttpActionResponse ResponseWrapper { get; set; }
+
         public HttpActionContext()
         {
 
@@ -17,8 +23,7 @@ namespace Zata.Web
 
         public HttpActionContext(HttpActionContext context) : base(context)
         {
-            HttpContext = context.HttpContext;
-            ResponseStream = context.ResponseStream;
+            ResponseWrapper = context.ResponseWrapper;
         }
 
         public HttpActionContext(ActionContext context) : base(context)
@@ -27,18 +32,14 @@ namespace Zata.Web
 
             if (thisContext != null)
             {
-                HttpContext = thisContext.HttpContext;
-                ResponseStream = thisContext.ResponseStream;
+                ResponseWrapper = thisContext.ResponseWrapper;
             }
         }
 
-        public HttpContext HttpContext { get; set; }
-
-        public MemoryStream ResponseStream { get; set; }
-
         public void Dispose()
         {
-            ResponseStream.Dispose();
+            if(ResponseWrapper != null)
+                ResponseWrapper.Dispose();
         }
     }
 }

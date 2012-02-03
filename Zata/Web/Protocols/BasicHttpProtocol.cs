@@ -15,9 +15,9 @@ namespace Zata.Web.Protocols
         /// 格式化输出
         /// </summary>
         /// <param name="context"></param>
-        public override void Response(HttpActionContext context)
+        public override void Response(HttpContext httpContext, HttpActionContext context)
         {
-            new BasicHttpMethodResponse().ProcessResponse(context);
+            new BasicHttpMethodResponse().ProcessResponse(httpContext, context);
         }
 
         #endregion
@@ -40,7 +40,7 @@ namespace Zata.Web.Protocols
             for (int i = 0, j = proxy.Parameters.Length; i < j; i++)
             {
                 var p = proxy.Parameters[i];
-                string para = context.HttpContext.Request[p.Name];
+                string para = httpContext.Request[p.Name];
 
                 context.Arguments[i] = para;
             }

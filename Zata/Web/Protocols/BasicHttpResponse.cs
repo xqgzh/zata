@@ -25,18 +25,17 @@ namespace Zata.Web.Protocols
         /// <param name="httpRequest"></param>
         /// <param name="httpResponse"></param>
         /// <param name="httpMethodContext"></param>
-        public void ProcessResponse(HttpActionContext context)
+        public void ProcessResponse(HttpContext httpContext, HttpActionContext context)
         {
             //0 业务逻辑检查, 检查方法的返回值是否合法
             //1 生成结果的二进制字节流
             //2 检查返回值是否需要压缩
             //3 检查返回值是否需要签名
             //4 写入结果到ResponseStream中
-            context.ResponseStream = new MemoryStream();
-
-            context.HttpContext.Response.Clear();
+            context.ResponseWrapper = new HttpActionResponse();
+            httpContext.Response.Clear();
             object o = context.Result;
-            string acceptType = GetAcceptType(context.HttpContext.Request);
+            string acceptType = GetAcceptType(httpContext.Request);
 
             //获取返回结果的二进制数据
             byte[] ResultBinary = GetResultBinary(o, acceptType);
@@ -65,11 +64,11 @@ namespace Zata.Web.Protocols
             //}
 
             //写入Response
-            context.HttpContext.Response.ContentEncoding = Encoding.UTF8;
+            context.ResponseWrapper.ContentEncoding = Encoding.UTF8;
 
 
-            context.HttpContext.Response.ContentType = acceptType;
-            context.ResponseStream.Write(ResultBinary, 0, ResultBinary.Length);
+            context.ResponseWrapper.ContentType = acceptType;
+            context.ResponseWrapper.BinaryWrite(ResultBinary);
             //context.HttpContext.Response.BinaryWrite(ResultBinary);
             //context.HttpContext.Response.Flush();
         }

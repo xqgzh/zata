@@ -61,10 +61,8 @@ namespace Zata.Web
                     HttpApplication httpApplication = (HttpApplication)sender;
 
                     HttpContext httpContext = httpApplication.Context;
-                    HttpRequest httpRequest = httpApplication.Request;
-                    HttpResponse httpResponse = httpApplication.Response;
 
-                    actionRequest.Response();
+                    actionRequest.Response(httpContext);
                 }
             }
             catch(Exception ex)

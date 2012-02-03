@@ -17,7 +17,7 @@ namespace WebUI
             Response.Redirect("~/Test2.aspx");
         }
 
-        [HttpCacheAction]
+        [TestCacheAttribute]
         [CachedMethodAttribute]
         public string Test(
             string a, string b, string c)

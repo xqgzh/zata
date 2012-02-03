@@ -70,6 +70,7 @@
     <Compile Include="Test2.aspx.designer.cs">
       <DependentUpon>Test2.aspx</DependentUpon>
     </Compile>
+    <Compile Include="TestCacheAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zata\Zata.csproj">

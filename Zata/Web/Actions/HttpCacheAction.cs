@@ -19,7 +19,7 @@ namespace Zata.Web.Actions
     {
         protected static Cache cacheManager = HttpRuntime.Cache;
 
-        private IAction NextAction;
+        protected IAction NextAction;
 
         /// <summary>
         /// 默认过期时间
@@ -29,30 +29,24 @@ namespace Zata.Web.Actions
         /// <summary>
         /// 缓存键设置
         /// </summary>
-        string CacheKeyFormater = string.Empty;
+        protected string CacheKeyFormater = string.Empty;
 
         #region IHttpAction Members
 
-        public void InitContext(HttpActionRequest request)
+        public virtual void InitContext(HttpActionRequest request)
         {
             //这里处理检查是否缓存
-            HttpActionCacheContext cacheContext = null;
-
+            //这里处理检查是否缓存
             string CacheKey = request.Protocol.GetType().Name + string.Format(CacheKeyFormater, request.Context.Arguments);
 
-            cacheContext = cacheManager.Get(CacheKey) as HttpActionCacheContext;
+            HttpActionContext cacheContext = cacheManager.Get(CacheKey) as HttpActionContext;
 
-            if (cacheContext == null)
+            if (cacheContext != null)
             {
-                cacheContext = new HttpActionCacheContext(request.Context);
-                cacheContext.CacheKey = CacheKey;
+                request.Context = cacheContext;
             }
             else
-            {
-                cacheContext.HttpContext = request.Context.HttpContext;
-            }
-
-            request.Context = cacheContext;
+                request.Context.CacheKey = CacheKey;
 
             IHttpAction httpAction = NextAction as IHttpAction;
 
@@ -60,17 +54,15 @@ namespace Zata.Web.Actions
                 httpAction.InitContext(request);
         }
 
-        public void Response(HttpActionContext context)
+        public virtual void Response(HttpActionContext context)
         {
-            HttpActionCacheContext cacheContext = context as HttpActionCacheContext;
-
-            if (cacheContext != null && cacheContext.IsCached == false)
+            if (context != null && context.IsCached == false && !string.IsNullOrEmpty(context.CacheKey) )
             {
-                cacheContext.IsCached = true;
+                context.IsCached = true;
 
                 cacheManager.Add(
-                    cacheContext.CacheKey, 
-                    cacheContext, 
+                    context.CacheKey,
+                    context, 
                     null, DateTime.Now.AddSeconds(this.DefaultExpireSeconds), TimeSpan.Zero, CacheItemPriority.Default, null);
             }
 
@@ -86,7 +78,7 @@ namespace Zata.Web.Actions
 
         public MethodWrapper Proxy { get; set; }
 
-        public IAction Init(MethodWrapper methodWrapper, IAction nextAction)
+        public virtual IAction Init(MethodWrapper methodWrapper, IAction nextAction)
         {
             Proxy = methodWrapper;
 
@@ -95,7 +87,6 @@ namespace Zata.Web.Actions
             #region 构造缓存键
 
             CacheKeyFormater += methodWrapper.methodInfo.Name;
-
 
             ParamInfo[] paras = methodWrapper.Parameters;
 
@@ -112,11 +103,10 @@ namespace Zata.Web.Actions
             return this;
         }
 
-        public void Execute(ActionContext Context)
+        public virtual void Execute(ActionContext Context)
         {
-            HttpActionCacheContext cacheContext = Context as HttpActionCacheContext;
-
-            if (cacheContext == null || cacheContext.IsCached == false)
+            HttpActionContext context = Context as HttpActionContext;
+            if (context != null && context.IsCached == false)
             {
                 //缓存未命中, 需要执行
                 NextAction.Execute(Context);
@@ -124,17 +114,5 @@ namespace Zata.Web.Actions
         }
 
         #endregion
-    }
-
-    public class HttpActionCacheContext : HttpActionContext
-    {
-        public string CacheKey;
-
-        public bool IsCached = false;
-
-        public HttpActionCacheContext(HttpActionContext x) : base(x)
-        {
-
-        }
     }
 }

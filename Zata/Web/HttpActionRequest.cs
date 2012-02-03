@@ -47,7 +47,7 @@ namespace Zata.Web
         /// <summary>
         /// 格式化当前对结果, 写入到HttpResponse
         /// </summary>
-        public bool Response()
+        public bool Response(HttpContext httpContext)
         {
             if (Context != null && Context.Result != null && Protocol != null)
             {
@@ -57,15 +57,14 @@ namespace Zata.Web
                     httpAction.Response(Context);
 
 
-                if (Context.ResponseStream == null)
+                if (Context.ResponseWrapper == null)
                 {
-                    Protocol.Response(Context);
+                    Protocol.Response(httpContext, Context);
                 }
 
-                if (Context.ResponseStream != null)
+                if (Context.ResponseWrapper != null)
                 {
-                    byte[] bytes = Context.ResponseStream.ToArray();
-                    Context.HttpContext.Response.BinaryWrite(bytes);
+                    Context.ResponseWrapper.Flush(httpContext.Response);
                 }
 
                 return true;

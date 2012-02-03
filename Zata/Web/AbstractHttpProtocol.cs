@@ -30,7 +30,7 @@ namespace Zata.Web
         /// </summary>
         public virtual HttpActionContext GetActionContext(HttpContext httpContext, IAction action)
         {
-            HttpActionContext Context = new HttpActionContext() { HttpContext = httpContext };
+            HttpActionContext Context = new HttpActionContext();
 
             return Context;
         }
@@ -47,10 +47,10 @@ namespace Zata.Web
         /// <summary>
         /// 格式化当前对结果, 写入到HttpResponse
         /// </summary>
-        public virtual void Response(HttpActionContext context)
+        public virtual void Response(HttpContext httpContext, HttpActionContext context)
         {
-            if (context != null && context.HttpContext != null && context.Result != null)
-                context.HttpContext.Response.Write(context.Result);
+            if (context != null && context.Result != null)
+                httpContext.Response.Write(context.Result);
         }
 
         #endregion
