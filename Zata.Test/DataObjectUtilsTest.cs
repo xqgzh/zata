@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Zata.FastReflection;
@@ -15,13 +16,6 @@ namespace ObjKnife.Test
     [TestClass()]
     public class DataObjectUtilsTest
     {
-        [TestInitialize]
-        public void StartUp()
-        {
-            GlobalAccessorMap.Current.Regist(typeof(DynamicModel));
-            GlobalAccessorMap.Current.Regist(typeof(DataObjectModel));
-        }
-
         /// <summary>
         /// A test for GetPropertyValue
         /// </summary>
@@ -117,6 +111,96 @@ namespace ObjKnife.Test
             var type = this.GetType();
             var method = type.GetMethod("GenericMehod");
             method.MakeGenericMethod(typeof(BindingFlags)).Invoke(this, new object[] { BindingFlags.Public });
+        }
+
+        [TestMethod]
+        public void CopyValueTest()
+        {
+            var obj1 = new DataObjectModel()
+            {
+                Name = "Name",
+                Key = "Key",
+                Hash = "Hash",
+                KeyField = "KeyField",
+                NameField = "NameField",
+                Namespace = "Namespace",
+                Property = "Property",
+                ReferenceCount = "FDf"
+            };
+            var obj2 = new DynamicModel();
+
+            obj1.CopyValueTo(obj2);
+
+            Assert.AreEqual(obj1.Name, obj2.Name);
+            Assert.AreEqual(obj1.NameField, obj2.NameField);
+            Assert.AreEqual(obj1.Key, obj2.Key);
+            Assert.AreEqual(obj1.KeyField, obj2.KeyField);
+            Assert.AreEqual(obj1.Hash, obj2.Hash);
+            Assert.AreEqual(obj1.Namespace, obj2.Namespace);
+            Assert.AreEqual(obj1.Property, obj2.Property);
+            Assert.AreEqual(obj1.ReferenceCount, obj2.ReferenceCount);
+        }
+
+        [TestMethod]
+        public void CopyValuePerformanceTest()
+        {
+            var obj1 = new DataObjectModel()
+            {
+                Name = "Name",
+                Key = "Key",
+                Hash = "Hash",
+                KeyField = "KeyField",
+                NameField = "NameField",
+                Namespace = "Namespace",
+                Property = "Property",
+                ReferenceCount = "FDf"
+            };
+
+            var obj2 = new DataObjectModel()
+            {
+                Name = "Name",
+                Key = "Key",
+                Hash = "Hash",
+                KeyField = "KeyField",
+                NameField = "NameField",
+                Namespace = "Namespace",
+                Property = "Property",
+                ReferenceCount = "FDf"
+            };
+
+            var copyCall = new PerformanceTimer(() => { obj1.CopyValueTo(obj2); }).Run(1000000);
+            var cloneCall = new PerformanceTimer(() => { obj2 = obj1.Clone() as DataObjectModel; }).Run(1000000);
+            var mannualCall = new PerformanceTimer(() => { MannualCopy(obj1, obj2); }).Run(1000000);
+            var interfaceCall = new PerformanceTimer(() => { ReflectionCopy(obj1, obj2); }).Run(1000000);
+
+            Trace.WriteLine(String.Format("接口拷贝用时{0}, 动态拷贝用时:{1}，浅拷贝用时:{2}, 手工赋值用时{3}", interfaceCall, copyCall, cloneCall, mannualCall));
+
+            Trace.WriteLine("动态赋值与IDataObject接口的时间比为: " + copyCall.TotalMilliseconds / interfaceCall.TotalMilliseconds);
+        }
+
+        private void MannualCopy(DataObjectModel source, DataObjectModel target)
+        {
+            target.NameField = source.NameField;
+            target.Name = source.Name;
+            target.Key = source.Key;
+            target.KeyField = source.KeyField;
+            target.Hash = source.Hash;
+            target.Namespace = source.Namespace;
+            target.Property = source.Property;
+            target.ReferenceCount = source.ReferenceCount;
+        }
+
+        private void ReflectionCopy(IDataObject source, IDataObject target)
+        {
+            var sourceType = source.GetType();
+            foreach (var memberInfo in sourceType.GetProperties())
+            {
+                target.SetValue(memberInfo.Name, source.GetValue(memberInfo.Name));
+            }
+            foreach (var memberInfo in sourceType.GetFields())
+            {
+                target.SetValue(memberInfo.Name, source.GetValue(memberInfo.Name));
+            }
         }
 
         public void GenericMehod<T>(T e) where T : struct

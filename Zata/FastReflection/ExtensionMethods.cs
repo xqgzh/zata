@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
-using Zata.FastReflection.Accessors;
+﻿using System;
+using System.Collections.Generic;
 using Zata.FastReflection.Caching;
 
 namespace Zata.FastReflection
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class ExtensionMethods
     {
         public static object GetPropertyValue(this object obj, string propertyName)
         {
-            return GlobalAccessorMap.Current.FindPropertyAccessor(obj.GetType(), propertyName).GetProperty(obj);
+            return obj.GetType().FindAccessorCache().FindPropertyAccessor(obj.GetType(), propertyName).GetProperty(obj);
         }
 
         /// <summary>
@@ -43,7 +46,7 @@ namespace Zata.FastReflection
 
         public static void SetPropertyValue(this object obj, string propertyName, object value)
         {
-            GlobalAccessorMap.Current.FindPropertyAccessor(obj.GetType(), propertyName).SetProperty(obj, value);
+            obj.GetType().FindAccessorCache().FindPropertyAccessor(obj.GetType(), propertyName).SetProperty(obj, value);
         }
 
         public static void SetPropertyValue<T>(this T obj, string propertyName, object value)
@@ -59,6 +62,60 @@ namespace Zata.FastReflection
         public static void SetPropertyValue(this IAccessorCacheHost obj, string propertyName, object value)
         {
             obj.AccessorCache.FindPropertyAccessor(obj.GetType(), propertyName).SetProperty(obj, value);
+        }
+
+        public static Type GetPropertyOrFieldType(this Type type, string memberName)
+        {
+            Type memberType = null;
+            var propertyInfo = type.GetProperty(memberName);
+            if (propertyInfo != null)
+                memberType = propertyInfo.PropertyType;
+            else
+            {
+                var fieldType = type.GetField(memberName);
+                if (fieldType != null)
+                    memberType = fieldType.FieldType;
+            }
+
+            return memberType;
+        }
+
+        /// <summary>
+        /// 将一个对象的同名值赋值到目标对象，如果对象是Object类型的，请使用非泛型版本
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="D"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="target"></param>
+        public static void CopyValueTo<S, D>(this S obj, D target)
+        {
+            var sourceType = typeof(S);
+            foreach (var memberInfo in sourceType.GetProperties())
+            {
+                target.SetPropertyValue(memberInfo.Name, obj.GetPropertyValue(memberInfo.Name));
+            }
+            foreach (var memberInfo in sourceType.GetFields())
+            {
+                target.SetPropertyValue(memberInfo.Name, obj.GetPropertyValue(memberInfo.Name));
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        public static void CopyValueTo(this object source, object target)
+        {
+            var sourceType = source.GetType();
+            foreach (var memberInfo in sourceType.GetProperties())
+            {
+                target.SetPropertyValue(memberInfo.Name, target.GetPropertyValue(memberInfo.Name));
+            }
+            foreach (var memberInfo in sourceType.GetFields())
+            {
+                target.SetPropertyValue(memberInfo.Name, target.GetPropertyValue(memberInfo.Name));
+            }
         }
 
         public static object GetPropertyValueByReflection<T>(this T obj, string propertyName)
