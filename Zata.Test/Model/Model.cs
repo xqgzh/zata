@@ -2,13 +2,14 @@
 using Zata.FastReflection.Accessors;
 using Zata.FastReflection.Accessors.Factories;
 using Zata.FastReflection.Caching;
+using Zata.FastReflection;
 
 namespace Zata.Test
 {
     /// <summary>
     /// 
     /// </summary>
-    public class DataObjectModel : DynamicModel, IDataObject, ICloneable
+    public class DataObjectModel : DynamicModel, IDataObject, ICloneable, IEntity<DataObjectModel>
     {
         private static DictionaryAccessorCache cache = new DictionaryAccessorCache(new GenericAccessorFactory(), InClassAccessorKeyStrategy.Instance);
         static DataObjectModel()
@@ -71,7 +72,7 @@ namespace Zata.Test
         #endregion
     }
 
-    public class DynamicModel : IAccessorCacheHost
+    public class DynamicModel : AbstractEntity<DynamicModel>, IAccessorCacheHost
     {
         private static DictionaryAccessorCache cache = new DictionaryAccessorCache(new GenericAccessorFactory(), InClassAccessorKeyStrategy.Instance);
         static DynamicModel()
