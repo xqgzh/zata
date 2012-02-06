@@ -81,6 +81,7 @@ namespace Zata.Test
             cache.Regist(typeof(DynamicModel));
         }
 
+        [CompatibleName("Prop")]
         public string Property { get; set; }
 
         public string Name { get; set; }

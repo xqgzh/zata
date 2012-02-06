@@ -76,6 +76,7 @@
     <Compile Include="FastReflection\Caching\IAccessorCacheHost.cs" />
     <Compile Include="FastReflection\Caching\IAccessorKeyStrategy.cs" />
     <Compile Include="FastReflection\Caching\InClassAccessorKeyStrategy.cs" />
+    <Compile Include="FastReflection\CompatibleNameAttribute.cs" />
     <Compile Include="FastReflection\EntityTools.cs" />
     <Compile Include="FastReflection\ExtensionMethods.cs" />
     <Compile Include="FastReflection\GenericAccessorMap.cs" />

@@ -71,48 +71,58 @@ namespace Zata.FastReflection
              * }
              * 
              * 
-             * 
              */
-            MemberInfo[] list = type.GetMembers(BindingFlags.SetField | BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public);
+            MemberInfo[] memberList = type.GetMembers(BindingFlags.SetField | BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public);
             List<SwitchCase> caseExpressions = new List<SwitchCase>();
-            foreach (var field1 in list)
+            foreach (var member in memberList)
             {
-                if (field1.MemberType != MemberTypes.Property && field1.MemberType != MemberTypes.Field)
+                if (member.MemberType != MemberTypes.Property && member.MemberType != MemberTypes.Field)
                     continue;
 
-                if (!IsCanSet(field1))
+                if (!IsCanSet(member))
                     continue;
 
-                var filedExpression1 = Expression.PropertyOrField(Argument, field1.Name);
-
+                var filedExpression1 = Expression.PropertyOrField(Argument, member.Name);
                 UnaryExpression convertExpression = null;
                 convertExpression = Expression.Convert(valueExpression, filedExpression1.Type);
-
                 var assignExpression = Expression.Assign(filedExpression1, convertExpression);
                 var blockExpr = Expression.Block(assignExpression, Expression.Constant(true));
-                var caseExpr = Expression.SwitchCase(blockExpr, Expression.Constant(ignoreCase ? field1.Name.ToUpperInvariant().GetHashCode() : field1.Name.GetHashCode()));
+                var caseExpr = Expression.SwitchCase(blockExpr, GetMemberCompitableNames(member, ignoreCase));
 
                 caseExpressions.Add(caseExpr);
             }
             var switchExpression = Expression.Switch(eva, Expression.Constant(true), caseExpressions.ToArray());
-
             methodBody.Add(switchExpression);
 
             //组装函数, 注意局部变量在第二个参数注册
-            var methodBodyExpr = Expression.Block(
-                typeof(void),
-                new[] { v },
-                methodBody);
+            var methodBodyExpr = Expression.Block(typeof(void), new[] { v }, methodBody);
 
             return Expression.Lambda<Action<T, string, object>>(methodBodyExpr, Argument, nameExpression, valueExpression).Compile();
         }
 
-        static bool IsGAC(MemberInfo m)
+        private static Expression[] GetMemberCompitableNames(MemberInfo member, bool ignoreCase)
+        {
+            var testCases = new List<Expression>();
+            // 计算HashCode的过程放在了代码生成阶段，使用Dictionary的方式时HashCode是执行时计算的。
+            testCases.Add(Expression.Constant(ignoreCase ? member.Name.ToUpperInvariant().GetHashCode() : member.Name.GetHashCode()));
+            foreach (var attribute in member.GetCustomAttributes(true))
+            {
+                if (attribute is CompatibleNameAttribute)
+                {
+                    var compatibleName = (attribute as CompatibleNameAttribute).Name;
+                    testCases.Add(Expression.Constant(ignoreCase ? compatibleName.ToUpperInvariant().GetHashCode() : compatibleName.GetHashCode()));
+                }
+            }
+
+            return testCases.ToArray();
+        }
+
+        private static bool IsGAC(MemberInfo m)
         {
             return m.DeclaringType.Assembly.GlobalAssemblyCache;
         }
 
-        static bool IsValueType(MemberInfo m)
+        private static bool IsValueType(MemberInfo m)
         {
             PropertyInfo p = m as PropertyInfo;
 
@@ -149,36 +159,24 @@ namespace Zata.FastReflection
         /// <returns></returns>
         internal static Func<T, string, object> GetValueFunction(bool ignoreCase = false)
         {
-            Type type = typeof(T);
-
+            var type = typeof(T);
             var Argument = Expression.Parameter(type, "obj");
             var nameExpression = Expression.Parameter(typeof(string), "name");
-
             var v = Expression.Variable(typeof(int));
-
             var methodBody = new List<Expression>();
-
             var hashCode = Expression.Call(ignoreCase ? Expression.Call(nameExpression, typeof(string).GetMethod("ToUpperInvariant")) as Expression : nameExpression, typeof(string).GetMethod("GetHashCode"));
             var eva = Expression.Assign(v, hashCode);
-
             methodBody.Add(eva);
 
-            MemberInfo[] list = type.GetMembers(BindingFlags.GetField | BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public | BindingFlags.Default);
-
+            MemberInfo[] memberList = type.GetMembers(BindingFlags.GetField | BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public | BindingFlags.Default);
             List<SwitchCase> caseExpressions = new List<SwitchCase>();
-
-            LabelTarget returnTarget = Expression.Label();
-
-            foreach (var field1 in list)
+            foreach (var member in memberList)
             {
-                if (field1.MemberType != MemberTypes.Property && field1.MemberType != MemberTypes.Field)
+                if (member.MemberType != MemberTypes.Property && member.MemberType != MemberTypes.Field)
                     continue;
 
-                var filedExpression1 = Expression.Convert(Expression.PropertyOrField(Argument, field1.Name), typeof(object));
-
-                // 计算HashCode的过程放在了代码生成阶段，使用Dictionary的方式时HashCode是执行时计算的。
-                var caseExpr = Expression.SwitchCase(filedExpression1, Expression.Constant(ignoreCase ? field1.Name.ToUpperInvariant().GetHashCode() : field1.Name.GetHashCode()));
-
+                var memberValue = Expression.Convert(Expression.PropertyOrField(Argument, member.Name), typeof(object));
+                var caseExpr = Expression.SwitchCase(memberValue, GetMemberCompitableNames(member, ignoreCase));
                 caseExpressions.Add(caseExpr);
             }
 
@@ -186,10 +184,7 @@ namespace Zata.FastReflection
 
             methodBody.Add(switchExpression);
 
-            var methodBodyExpr = Expression.Block(
-                typeof(object),
-                new[] { v },
-                methodBody);
+            var methodBodyExpr = Expression.Block(typeof(object), new[] { v }, methodBody);
 
             return Expression.Lambda<Func<T, string, object>>(methodBodyExpr, Argument, nameExpression).Compile();
         }
@@ -234,10 +229,7 @@ namespace Zata.FastReflection
                 if (memberInfo.MemberType != MemberTypes.Field && memberInfo.MemberType != MemberTypes.Property)
                     continue;
 
-                var bMember = bMemberList.FirstOrDefault(m => String.Compare(m.Name, memberInfo.Name, ignoreCase) == 0 && m.MemberType == memberInfo.MemberType);
-                if (bMember == null)
-                    bMemberList.FirstOrDefault(m => String.Compare(m.Name, memberInfo.Name, ignoreCase) == 0);
-
+                var bMember = FindCompatibleMember(bMemberList, memberInfo.Name, memberInfo.MemberType, ignoreCase);
                 if (bMember == null || !EntityTools<D>.IsCanSet(bMember))
                     continue;
 
@@ -273,6 +265,25 @@ namespace Zata.FastReflection
             }
             else
                 return emtptyAction;
+        }
+
+        private static MemberInfo FindCompatibleMember(MemberInfo[] memberList, string targetName, MemberTypes types, bool ignoreCase)
+        {
+            var bMember = memberList.FirstOrDefault(m => IsMemberMatchName(m, targetName, ignoreCase) && m.MemberType == types);
+            if (bMember == null)
+                memberList.FirstOrDefault(m => IsMemberMatchName(m, targetName, ignoreCase));
+
+            return bMember;
+        }
+
+        private static bool IsMemberMatchName(MemberInfo member, string targetName, bool ignoreCase)
+        {
+            var compatibleNames = new List<string>() { member.Name };
+            compatibleNames.AddRange(from a in member.GetCustomAttributes(true)
+                                     where a is CompatibleNameAttribute
+                                     select (a as CompatibleNameAttribute).Name);
+
+            return compatibleNames.Any(name => String.Compare(name, targetName, ignoreCase) == 0);
         }
     }
 }
