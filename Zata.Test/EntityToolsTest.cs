@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Zata.FastReflection;
+using System;
 
 namespace Zata.Test
 {
@@ -45,6 +46,8 @@ namespace Zata.Test
             public string A { get; set; }
 
             public string Property { get; set; }
+
+            public DateTime DateTime { get; set; }
         }
 
         public class BClass
@@ -54,6 +57,8 @@ namespace Zata.Test
             [CompatibleName("Pp")]
             [CompatibleName("Property")]
             public string Prop { get; set; }
+
+            public string DateTime { get; set; }
         }
 
         [TestMethod]
@@ -68,6 +73,14 @@ namespace Zata.Test
             Assert.AreEqual(null, EntityTools<BClass>.GetValue(b, "a"));
             EntityTools<AClass, BClass>.CopyTo(a, b, true);
             Assert.AreEqual("AValue", EntityTools<BClass>.GetValue(b, "a"));
+        }
+
+        [TestMethod]
+        public void ConvertableTest()
+        {
+            var b = new BClass();
+            EntityTools<BClass>.SetValue(b, "DateTime", DateTime.Now);
+            Assert.IsNotNull(b.DateTime);
         }
     }
 }

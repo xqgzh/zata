@@ -85,18 +85,22 @@ namespace Zata.FastReflection
                 // 类型正确
                 var targetMember = Expression.PropertyOrField(Argument, member.Name);
                 UnaryExpression convertExpression = null;
-                convertExpression = Expression.Convert(valueExpression, targetMember.Type);
+                if (targetMember.Type.IsValueType)
+                {
+                    convertExpression = Expression.Convert(valueExpression, targetMember.Type);
+                }
+                else
+                {
+                    convertExpression = Expression.TypeAs(valueExpression, targetMember.Type);
+                }
                 var assignExpression = Expression.Assign(targetMember, convertExpression);
 
                 // 类型转移失败
-                var callConvert = Expression.Assign(convertExpression, Expression.Convert(Expression.Call(valueExpression, typeof(IConvertible).GetMethod("ToType")), targetMember.Type));
+                var callConvert = Expression.Assign(targetMember, Expression.Convert(Expression.Call(Expression.Convert(valueExpression, typeof(IConvertible)), typeof(IConvertible).GetMethod("ToType"), Expression.Constant(targetMember.Type), Expression.Constant(null, typeof(IFormatProvider))), targetMember.Type));
                 var checkConvertable = Expression.IfThen(Expression.TypeIs(valueExpression, typeof(IConvertible)), callConvert);
+                var resultCheck = Expression.IfThenElse(Expression.Equal(Expression.Constant(null), convertExpression), checkConvertable, assignExpression);
 
-                var nullChecker = Expression.Variable(targetMember.Type);
-                var resultCheck = Expression.IfThenElse(Expression.Equal(nullChecker, convertExpression), checkConvertable, assignExpression);
-
-                // TODO: use resultCheck
-                var blockExpr = Expression.Block(assignExpression, Expression.Constant(true));
+                var blockExpr = Expression.Block(resultCheck, Expression.Constant(true));
                 var caseExpr = Expression.SwitchCase(blockExpr, GetMemberCompitableNames(member, ignoreCase));
 
                 caseExpressions.Add(caseExpr);
