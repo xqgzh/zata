@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Zata.FastReflection.Caching;
+using System.Reflection;
 
 namespace Zata.FastReflection
 {
@@ -78,6 +79,21 @@ namespace Zata.FastReflection
             }
 
             return memberType;
+        }
+
+        public static Type GetReturnType(this MemberInfo info)
+        {
+            var propertyInfo = info as PropertyInfo;
+            if (propertyInfo != null)
+                return propertyInfo.PropertyType;
+            else
+            {
+                var fieldInfo = info as FieldInfo;
+                if (fieldInfo != null)
+                    return fieldInfo.FieldType;
+                else
+                    return null;
+            }
         }
 
         /// <summary>
