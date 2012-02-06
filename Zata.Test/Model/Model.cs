@@ -24,6 +24,7 @@ namespace Zata.Test
 
         #region IDataObject Members
 
+
         public bool SetValue(string dataName, object dataValue)
         {
             switch (dataName)
@@ -80,6 +81,7 @@ namespace Zata.Test
             cache.Regist(typeof(DynamicModel));
         }
 
+        [CompatibleName("Prop")]
         public string Property { get; set; }
 
         public string Name { get; set; }

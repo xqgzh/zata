@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataObjectUtilsTest.cs" />
+    <Compile Include="EntityToolsTest.cs" />
     <Compile Include="Model\IDataObject.cs" />
     <Compile Include="Model\Model.cs" />
     <Compile Include="Performance\PerformanceTimer.cs" />

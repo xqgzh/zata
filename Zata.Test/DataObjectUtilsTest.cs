@@ -186,12 +186,13 @@ namespace ObjKnife.Test
                 ReferenceCount = "FDf"
             };
 
-            var copyCall = new PerformanceTimer(() => { obj1.CopyValueTo(obj2); }).Run(1000000);
-            var cloneCall = new PerformanceTimer(() => { obj2 = obj1.Clone() as DataObjectModel; }).Run(1000000);
-            var mannualCall = new PerformanceTimer(() => { MannualCopy(obj1, obj2); }).Run(1000000);
-            var interfaceCall = new PerformanceTimer(() => { ReflectionCopy(obj1, obj2); }).Run(1000000);
+            var copyCall = new PerformanceTimer(() => obj1.CopyValueTo(obj2)).Run(1000000);
+            var cloneCall = new PerformanceTimer(() => obj2 = obj1.Clone() as DataObjectModel).Run(1000000);
+            var mannualCall = new PerformanceTimer(() => MannualCopy(obj1, obj2)).Run(1000000);
+            var interfaceCall = new PerformanceTimer(() => ReflectionCopy(obj1, obj2)).Run(1000000);
+            var emitCall = new PerformanceTimer(() => EntityTools<DataObjectModel, DataObjectModel>.CopyTo(obj1, obj2, true)).Run(1000000);
 
-            Trace.WriteLine(String.Format("接口拷贝用时{0}, 动态拷贝用时:{1}，浅拷贝用时:{2}, 手工赋值用时{3}", interfaceCall, copyCall, cloneCall, mannualCall));
+            Trace.WriteLine(String.Format("接口拷贝用时{0}, 动态拷贝用时:{1}，浅拷贝用时:{2}, 手工赋值用时{3}, Emit用时{4}", interfaceCall, copyCall, cloneCall, mannualCall, emitCall));
 
             Trace.WriteLine("动态赋值与IDataObject接口的时间比为: " + copyCall.TotalMilliseconds / interfaceCall.TotalMilliseconds);
         }
@@ -291,7 +292,7 @@ namespace ObjKnife.Test
                     int MaxTimes = MaxTimeList[Step];
 
                     if (StepWatcher != null)
-                        StepWatcher(MaxTimes);                    
+                        StepWatcher(MaxTimes);
 
                     foreach (var name in Methods.Keys)
                     {
