@@ -82,10 +82,20 @@ namespace Zata.FastReflection
                 if (!IsCanSet(member))
                     continue;
 
-                var filedExpression1 = Expression.PropertyOrField(Argument, member.Name);
+                // 类型正确
+                var targetMember = Expression.PropertyOrField(Argument, member.Name);
                 UnaryExpression convertExpression = null;
-                convertExpression = Expression.Convert(valueExpression, filedExpression1.Type);
-                var assignExpression = Expression.Assign(filedExpression1, convertExpression);
+                convertExpression = Expression.Convert(valueExpression, targetMember.Type);
+                var assignExpression = Expression.Assign(targetMember, convertExpression);
+
+                // 类型转移失败
+                var callConvert = Expression.Assign(convertExpression, Expression.Convert(Expression.Call(valueExpression, typeof(IConvertible).GetMethod("ToType")), targetMember.Type));
+                var checkConvertable = Expression.IfThen(Expression.TypeIs(valueExpression, typeof(IConvertible)), callConvert);
+
+                var nullChecker = Expression.Variable(targetMember.Type);
+                var resultCheck = Expression.IfThenElse(Expression.Equal(nullChecker, convertExpression), checkConvertable, assignExpression);
+
+                // TODO: use resultCheck
                 var blockExpr = Expression.Block(assignExpression, Expression.Constant(true));
                 var caseExpr = Expression.SwitchCase(blockExpr, GetMemberCompitableNames(member, ignoreCase));
 
