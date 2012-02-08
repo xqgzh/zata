@@ -8,10 +8,10 @@ namespace Zata.FastReflection
 {
     public class EntityTools<T>
     {
-        public static Func<T, string, object> GetValue;
-        public static Action<T, string, object> SetValue;
-        public static Func<T, string, object> GetValueIgnoreCase;
-        public static Action<T, string, object> SetValueIgnoreCase;
+        public static Func<T, string, object> GetValue { get; private set; }
+        public static Action<T, string, object> SetValue { get; private set; }
+        public static Func<T, string, object> GetValueIgnoreCase { get; private set; }
+        public static Action<T, string, object> SetValueIgnoreCase { get; private set; }
 
         static EntityTools()
         {
