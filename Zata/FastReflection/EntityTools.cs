@@ -82,30 +82,25 @@ namespace Zata.FastReflection
                 if (!IsCanSet(member))
                     continue;
 
-                // 类型正确
                 var targetMember = Expression.PropertyOrField(Argument, member.Name);
-                UnaryExpression convertExpression = null;
-                if (targetMember.Type.IsValueType)
-                {
-                    convertExpression = Expression.Convert(valueExpression, targetMember.Type);
-                }
-                else
-                {
-                    convertExpression = Expression.TypeAs(valueExpression, targetMember.Type);
-                }
+
+                // 类型正确
+                UnaryExpression convertExpression = Expression.Convert(valueExpression, targetMember.Type);
                 var assignExpression = Expression.Assign(targetMember, convertExpression);
+                var blockExpr = Expression.Block(typeof(void), assignExpression);
 
                 // 类型转移失败
                 var callConvert = Expression.Assign(targetMember, Expression.Convert(Expression.Call(Expression.Convert(valueExpression, typeof(IConvertible)), typeof(IConvertible).GetMethod("ToType"), Expression.Constant(targetMember.Type), Expression.Constant(null, typeof(IFormatProvider))), targetMember.Type));
                 var checkConvertable = Expression.IfThen(Expression.TypeIs(valueExpression, typeof(IConvertible)), callConvert);
-                var resultCheck = Expression.IfThenElse(Expression.Equal(Expression.Constant(null), convertExpression), checkConvertable, assignExpression);
+                CatchBlock catchBlock = Expression.Catch(typeof(InvalidCastException), checkConvertable);
 
-                var blockExpr = Expression.Block(resultCheck, Expression.Constant(true));
-                var caseExpr = Expression.SwitchCase(blockExpr, GetMemberCompitableNames(member, ignoreCase));
+                var tryConvert = Expression.TryCatch(blockExpr, catchBlock);
+
+                var caseExpr = Expression.SwitchCase(tryConvert, GetMemberCompitableNames(member, ignoreCase));
 
                 caseExpressions.Add(caseExpr);
             }
-            var switchExpression = Expression.Switch(eva, Expression.Constant(true), caseExpressions.ToArray());
+            var switchExpression = Expression.Switch(eva, Expression.Throw(Expression.New(typeof(ArgumentException))), caseExpressions.ToArray());
             methodBody.Add(switchExpression);
 
             //组装函数, 注意局部变量在第二个参数注册

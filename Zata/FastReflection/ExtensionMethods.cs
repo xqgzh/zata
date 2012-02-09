@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Zata.FastReflection.Caching;
 using System.Reflection;
 
 namespace Zata.FastReflection
@@ -10,61 +9,12 @@ namespace Zata.FastReflection
     /// </summary>
     public static class ExtensionMethods
     {
-        public static object GetPropertyValue(this object obj, string propertyName)
-        {
-            return obj.GetType().FindAccessorCache().FindPropertyAccessor(obj.GetType(), propertyName).GetProperty(obj);
-        }
-
         /// <summary>
-        /// 推荐
+        /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="propertyName"></param>
+        /// <param name="type"></param>
+        /// <param name="memberName"></param>
         /// <returns></returns>
-        public static object GetPropertyValue<T>(this T obj, string propertyName)
-        {
-            return GenericAccessorMap<T>.Current.FindPropertyAccessor(obj.GetType(), propertyName).GetProperty(obj);
-        }
-
-        /// <summary>
-        /// 这个速度更慢
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="P"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="propertyName"></param>
-        /// <returns></returns>
-        public static P GetPropertyValue<T, P>(this T obj, string propertyName)
-        {
-            return GenericAccessorMap<T>.Current.FindPropertyAccessor<T, P>(propertyName).GetProperty(obj);
-        }
-
-        public static object GetPropertyValue(this IAccessorCacheHost obj, string propertyName)
-        {
-            return obj.AccessorCache.FindPropertyAccessor(obj.GetType(), propertyName).GetProperty(obj);
-        }
-
-        public static void SetPropertyValue(this object obj, string propertyName, object value)
-        {
-            obj.GetType().FindAccessorCache().FindPropertyAccessor(obj.GetType(), propertyName).SetProperty(obj, value);
-        }
-
-        public static void SetPropertyValue<T>(this T obj, string propertyName, object value)
-        {
-            GenericAccessorMap<T>.Current.FindPropertyAccessor(obj.GetType(), propertyName).SetProperty(obj, value);
-        }
-
-        public static void SetPropertyValue<T, P>(this T obj, string propertyName, P value)
-        {
-            GenericAccessorMap<T>.Current.FindPropertyAccessor<T, P>(propertyName).SetProperty(obj, value);
-        }
-
-        public static void SetPropertyValue(this IAccessorCacheHost obj, string propertyName, object value)
-        {
-            obj.AccessorCache.FindPropertyAccessor(obj.GetType(), propertyName).SetProperty(obj, value);
-        }
-
         public static Type GetPropertyOrFieldType(this Type type, string memberName)
         {
             Type memberType = null;
@@ -93,44 +43,6 @@ namespace Zata.FastReflection
                     return fieldInfo.FieldType;
                 else
                     return null;
-            }
-        }
-
-        /// <summary>
-        /// 将一个对象的同名值赋值到目标对象，如果对象是Object类型的，请使用非泛型版本
-        /// </summary>
-        /// <typeparam name="S"></typeparam>
-        /// <typeparam name="D"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="target"></param>
-        public static void CopyValueTo<S, D>(this S obj, D target)
-        {
-            var sourceType = typeof(S);
-            foreach (var memberInfo in sourceType.GetProperties())
-            {
-                target.SetPropertyValue(memberInfo.Name, obj.GetPropertyValue(memberInfo.Name));
-            }
-            foreach (var memberInfo in sourceType.GetFields())
-            {
-                target.SetPropertyValue(memberInfo.Name, obj.GetPropertyValue(memberInfo.Name));
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="target"></param>
-        public static void CopyValueTo(this object source, object target)
-        {
-            var sourceType = source.GetType();
-            foreach (var memberInfo in sourceType.GetProperties())
-            {
-                target.SetPropertyValue(memberInfo.Name, target.GetPropertyValue(memberInfo.Name));
-            }
-            foreach (var memberInfo in sourceType.GetFields())
-            {
-                target.SetPropertyValue(memberInfo.Name, target.GetPropertyValue(memberInfo.Name));
             }
         }
 

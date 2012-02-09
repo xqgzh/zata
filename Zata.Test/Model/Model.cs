@@ -1,7 +1,4 @@
 ﻿using System;
-using Zata.FastReflection.Accessors;
-using Zata.FastReflection.Accessors.Factories;
-using Zata.FastReflection.Caching;
 using Zata.FastReflection;
 
 namespace Zata.Test
@@ -11,19 +8,7 @@ namespace Zata.Test
     /// </summary>
     public class DataObjectModel : DynamicModel, IDataObject, ICloneable, IEntity<DataObjectModel>
     {
-        private static DictionaryAccessorCache cache = new DictionaryAccessorCache(new GenericAccessorFactory(), InClassAccessorKeyStrategy.Instance);
-        static DataObjectModel()
-        {
-            cache.Regist(typeof(DataObjectModel));
-        }
-
-        public override IAccessorCache AccessorCache
-        {
-            get { return cache; }
-        }
-
         #region IDataObject Members
-
 
         public bool SetValue(string dataName, object dataValue)
         {
@@ -73,14 +58,8 @@ namespace Zata.Test
         #endregion
     }
 
-    public class DynamicModel : AbstractEntity<DynamicModel>, IAccessorCacheHost
+    public class DynamicModel : AbstractEntity<DynamicModel>
     {
-        private static DictionaryAccessorCache cache = new DictionaryAccessorCache(new GenericAccessorFactory(), InClassAccessorKeyStrategy.Instance);
-        static DynamicModel()
-        {
-            cache.Regist(typeof(DynamicModel));
-        }
-
         [CompatibleName("Prop")]
         public string Property { get; set; }
 
@@ -97,14 +76,5 @@ namespace Zata.Test
         public string NameField;
 
         public string KeyField;
-
-        #region IAccessorCacheHost Members
-
-        public virtual IAccessorCache AccessorCache
-        {
-            get { return cache; }
-        }
-
-        #endregion
     }
 }
