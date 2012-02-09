@@ -59,6 +59,8 @@ namespace Zata.Test
             public string Prop { get; set; }
 
             public string DateTime { get; set; }
+
+            public int Age { get; set; }
         }
 
         [TestMethod]
@@ -80,7 +82,9 @@ namespace Zata.Test
         {
             var b = new BClass();
             EntityTools<BClass>.SetValue(b, "DateTime", DateTime.Now);
+            EntityTools<BClass>.SetValue(b, "Age", "12");
             Assert.IsNotNull(b.DateTime);
+            Assert.AreEqual(12, b.Age);
         }
     }
 }

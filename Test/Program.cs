@@ -15,7 +15,6 @@ namespace TestConsole
         {
             ClassA a = new ClassA();
             ClassB b = new ClassB();
-            EntityTools<ClassA>.CopyTo<ClassB>(a, b);
         }
     }
 
