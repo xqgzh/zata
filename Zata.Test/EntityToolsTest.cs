@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Zata.FastReflection;
 using System;
+using System.Collections.Generic;
 
 namespace Zata.Test
 {
@@ -85,6 +86,25 @@ namespace Zata.Test
             EntityTools<BClass>.SetValue(b, "Age", "12");
             Assert.IsNotNull(b.DateTime);
             Assert.AreEqual(12, b.Age);
+        }
+
+        [TestMethod]
+        public void ToUpperPerformanceTest()
+        {
+            Dictionary<string, int> hash = new Dictionary<string, int>();
+            hash.Add("a", "a".GetHashCode());
+            hash.Add("b", "a".GetHashCode());
+            hash.Add("c", "a".GetHashCode());
+            hash.Add("d", "a".GetHashCode());
+            hash.Add("e", "a".GetHashCode());
+            var temp = 1;
+            var temp2 = "";
+
+            var hashTime = new PerformanceTimer(() => temp = hash["a"]).Run(10000000);
+            var upperTime = new PerformanceTimer(() => temp2 = "abcdef".ToUpperInvariant()).Run(10000000);
+            var lowerTime = new PerformanceTimer(() => temp2 = "abcdef".ToLowerInvariant()).Run(10000000);
+
+            Console.WriteLine(String.Format("Hash用时{0}，ToUpper用时{1}，ToLower用时{2}", hashTime, upperTime, lowerTime));
         }
     }
 }

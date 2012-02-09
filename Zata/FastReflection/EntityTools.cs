@@ -90,7 +90,9 @@ namespace Zata.FastReflection
                 var blockExpr = Expression.Block(typeof(void), assignExpression);
 
                 // 类型转移失败
+                // field = (field.Type)((IConvertible)value).ToType(field.Type, null)
                 var callConvert = Expression.Assign(targetMember, Expression.Convert(Expression.Call(Expression.Convert(valueExpression, typeof(IConvertible)), typeof(IConvertible).GetMethod("ToType"), Expression.Constant(targetMember.Type), Expression.Constant(null, typeof(IFormatProvider))), targetMember.Type));
+                // if (value is IConvertible)
                 var checkConvertable = Expression.IfThen(Expression.TypeIs(valueExpression, typeof(IConvertible)), callConvert);
                 CatchBlock catchBlock = Expression.Catch(typeof(InvalidCastException), checkConvertable);
 

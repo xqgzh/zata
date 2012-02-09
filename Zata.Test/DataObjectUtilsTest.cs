@@ -35,12 +35,13 @@ namespace ObjKnife.Test
             var interfaceCall = new PerformanceTimer(() => { (obj as IDataObject).SetValue(propertyName, (obj as IDataObject).GetValue(propertyName)); }).Run(10000000);
             var reflectionCall = 0; // new PerformanceTimer(() => { var value = obj.GetPropertyValueByReflection(propertyName); }).Run(10000000);
             var entityToolsCall = new PerformanceTimer(() => { EntityTools<DataObjectModel>.SetValue(obj, propertyName, EntityTools<DataObjectModel>.GetValue(obj, propertyName)); }).Run(10000000);
+            var entityToolsICCall = new PerformanceTimer(() => { EntityTools<DataObjectModel>.SetValueIgnoreCase(obj, propertyName, EntityTools<DataObjectModel>.GetValueIgnoreCase(obj, propertyName)); }).Run(10000000);
             var iEntityCall = new PerformanceTimer(() => { obj.SetEntityValue(propertyName, obj.GetEntityValue(propertyName)); }).Run(10000000);
             var abstractEntityCall = new PerformanceTimer(() => { obj.SetValueEntity(propertyName, obj.GetValueEntity(propertyName)); }).Run(10000000);
 
             Trace.WriteLine(String.Format(
-                "直调用时{0}, 委托调用{1}，接口调用用时{2}， 反射调用用时{3}, entityToolsCall{4},iEntityCall{5},abstractEntityCall{6}", 
-                directCall, delegateCall, interfaceCall, reflectionCall, entityToolsCall, iEntityCall, abstractEntityCall));
+                "直调用时{0}, 委托调用{1}，接口调用用时{2}， 反射调用用时{3}, entityToolsCall{4}, entityICCall{5}, iEntityCall{6},abstractEntityCall{7}", 
+                directCall, delegateCall, interfaceCall, reflectionCall, entityToolsCall, entityToolsICCall, iEntityCall, abstractEntityCall));
 
             Trace.WriteLine(String.Format("entityToolsCall相对直调减速比为{0:##.##}, 相对接口减速比: {1:##.##}", 
                 entityToolsCall.TotalMilliseconds / directCall.TotalMilliseconds, 
