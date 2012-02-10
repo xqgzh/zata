@@ -14,13 +14,28 @@ namespace TestConsole
         static void Main(string[] args)
         {
             ClassA a = new ClassA();
-            ClassB b = new ClassB();
+
+            EntityTools<ClassA>.SetValue(a, "UserName", "Test1");
+
+            Console.WriteLine(EntityTools<ClassA>.GetValue(a, "UserName"));
         }
     }
 
     public class ClassA
     {
+        public int Age;
 
+        public string UserName { get; set; }
+
+        public DateTime dt;
+
+        public TestEnum testEnum;
+    }
+
+    public enum TestEnum
+    {
+        Test1,
+        Test2
     }
 
     public class ClassB

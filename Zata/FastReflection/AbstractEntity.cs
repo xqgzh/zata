@@ -12,8 +12,8 @@ namespace Zata.FastReflection
 
         static AbstractEntity()
         {
-            GetValueX = EntityTools<T>.GetValueFunction();
-            SetValueX = EntityTools<T>.SetValueFunction();
+            GetValueX = EntityToolsInternal.GetValueFunction<T>();
+            SetValueX = EntityToolsInternal.SetValueFunction<T>();
         }
 
         public object GetValueEntity(string name)

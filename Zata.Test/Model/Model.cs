@@ -58,9 +58,9 @@ namespace Zata.Test
         #endregion
     }
 
-    public class DynamicModel : AbstractEntity<DynamicModel>
+    public class DynamicModel
     {
-        [CompatibleName("Prop")]
+        [Entity("Prop")]
         public string Property { get; set; }
 
         public string Name { get; set; }

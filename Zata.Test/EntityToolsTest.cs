@@ -55,8 +55,8 @@ namespace Zata.Test
         {
             public string a { get; set; }
 
-            [CompatibleName("Pp")]
-            [CompatibleName("Property")]
+            [Entity("Pp")]
+            [Entity("Property")]
             public string Prop { get; set; }
 
             public string DateTime { get; set; }
