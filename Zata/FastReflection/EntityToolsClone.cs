@@ -42,7 +42,7 @@ namespace Zata.FastReflection
                     continue;
 
                 var bMember = FindCompatibleMember(bMemberList, memberInfo.Name, memberInfo.MemberType, ignoreCase);
-                if (bMember == null || !EntityToolsInternal.IsCanSet(bMember))
+                if (bMember == null || !EntityToolsInternal.IsMemberHaveSet(bMember))
                     continue;
 
                 var retType = memberInfo.GetReturnType();
