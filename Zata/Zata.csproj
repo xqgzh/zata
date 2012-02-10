@@ -59,10 +59,12 @@
     <Compile Include="Dynamic\MethodWrapper.cs" />
     <Compile Include="Dynamic\ParamInfo.cs" />
     <Compile Include="Dynamic\ParamAttribute.cs" />
-    <Compile Include="FastReflection\AbstractEntity.cs" />
-    <Compile Include="FastReflection\CompatibleNameAttribute.cs" />
+    <Compile Include="FastReflection\EntityAttribute.cs" />
+    <Compile Include="FastReflection\EntityToolsClone.cs" />
     <Compile Include="FastReflection\EntityTools.cs" />
-    <Compile Include="FastReflection\ExtensionMethods.cs" />
+    <Compile Include="FastReflection\EntityToolsInternal.cs" />
+    <Compile Include="FastReflection\Extensions\Object.Extension.cs" />
+    <Compile Include="FastReflection\Extensions\Type.Extensions.cs" />
     <Compile Include="FastReflection\IEntity.cs" />
     <Compile Include="FastReflection\IEntity.Extension.cs" />
     <Compile Include="Web\AbstractHttpProtocol.cs" />
