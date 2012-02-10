@@ -56,11 +56,14 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataObjectUtilsTest.cs" />
-    <Compile Include="EntityToolsTest.cs" />
+    <Compile Include="EntityToolsCloneTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Model\IDataObject.cs" />
     <Compile Include="Model\Model.cs" />
+    <Compile Include="EntityToolsTest.cs" />
     <Compile Include="Performance\PerformanceTimer.cs" />
+    <Compile Include="Performance\TestCase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

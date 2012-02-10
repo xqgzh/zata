@@ -59,7 +59,7 @@
     <Compile Include="Dynamic\MethodWrapper.cs" />
     <Compile Include="Dynamic\ParamInfo.cs" />
     <Compile Include="Dynamic\ParamAttribute.cs" />
-    <Compile Include="FastReflection\EntityAttribute.cs" />
+    <Compile Include="FastReflection\EntityAliasAttribute.cs" />
     <Compile Include="FastReflection\EntityToolsClone.cs" />
     <Compile Include="FastReflection\EntityTools.cs" />
     <Compile Include="FastReflection\EntityToolsInternal.cs" />

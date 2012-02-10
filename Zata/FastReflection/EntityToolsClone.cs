@@ -92,8 +92,8 @@ namespace Zata.FastReflection
         {
             var compatibleNames = new List<string>() { member.Name };
             compatibleNames.AddRange(from a in member.GetCustomAttributes(true)
-                                     where a is EntityAttribute
-                                     select (a as EntityAttribute).Name);
+                                     where a is EntityAliasAttribute
+                                     select (a as EntityAliasAttribute).Name);
 
             return compatibleNames.Any(name => String.Compare(name, targetName, ignoreCase) == 0);
         }

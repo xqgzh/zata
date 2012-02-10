@@ -7,19 +7,23 @@ using System.Reflection;
 
 namespace Zata.FastReflection
 {
-    public class EntityTools<T>
+    public abstract class EntityTools<T>
     {
-        public static readonly Func<T, string, object> GetValue;
-        public static readonly Action<T, string, object> SetValue;
-        public static readonly Func<T, string, object> GetValueIgnoreCase;
-        public static readonly Action<T, string, object> SetValueIgnoreCase;
+        public static readonly Func<T, string, bool, object> GetValue;
+        public static readonly Action<T, string, bool, object> SetValue;
+        public static readonly Func<T, string, bool, string> GetValueString;
+        public static readonly Action<T, string, bool, string> SetValueString;
+
+        public static int PropertyCount;
+        public static int FieldCount;
+
 
         static EntityTools()
         {
-            GetValue = EntityToolsInternal.GetValueFunction<T>();
-            SetValue = EntityToolsInternal.SetValueFunction<T>();
-            GetValueIgnoreCase = EntityToolsInternal.GetValueFunction<T>(true);
-            SetValueIgnoreCase = EntityToolsInternal.SetValueFunction<T>(true);
+            GetValue = EntityToolsInternal.GetValueFunction<T, object>();
+            SetValue = EntityToolsInternal.SetValueFunction<T, object>();
+            GetValueString = EntityToolsInternal.GetValueFunction<T, string>();
+            SetValueString = EntityToolsInternal.SetValueFunction<T, string>();
         }
     }
 

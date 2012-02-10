@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Linq.Expressions;
+using System.Reflection.Emit;
 
 namespace Zata.FastReflection
 {
@@ -16,41 +17,30 @@ namespace Zata.FastReflection
         /// 获取设置函数
         /// </summary>
         /// <returns></returns>
-        public static Action<T, string, object> SetValueFunction<T>(bool ignoreCase = false)
+        public static Action<T, string, bool, TValue> SetValueFunction<T, TValue>()
         {
             Type type = typeof(T);
+            Type valueType = typeof(TValue);
+
+            
 
             // public void Set(T obj, string name, object value)
-            var Argument = Expression.Parameter(type, "obj");
-            var nameExpression = Expression.Parameter(typeof(string), "name");
-            var valueExpression = Expression.Parameter(typeof(object), "value");
+            var objParameterExpr = Expression.Parameter(type, "obj");
+            var nameParameterExpr = Expression.Parameter(typeof(string), "name");
+            var ignoreCaseParameterExpr = Expression.Parameter(typeof(bool), "ignoreCase");
+            var valueParameterExpression = Expression.Parameter(valueType, "value");
 
             var methodBody = new List<Expression>();
 
-            // int v = name.GetHashCode()
-            // 参数需要在最后定义methodBody时传入
             var v = Expression.Variable(typeof(int));
-            var hashCode = Expression.Call(ignoreCase ? Expression.Call(nameExpression, typeof(string).GetMethod("ToUpperInvariant")) as Expression : nameExpression, typeof(string).GetMethod("GetHashCode"));
+            var hashCode = Expression.Condition(
+                Expression.IsTrue(ignoreCaseParameterExpr), 
+                Expression.Call(GetNameHashCodeMethod, nameParameterExpr),
+                Expression.Call(nameParameterExpr, typeof(string).GetMethod("GetHashCode")));
             var eva = Expression.Assign(v, hashCode);
 
-            /*
-             * switch(v)
-             * {
-             *   case 3455: //field1.Name.HashCode
-             *      obj.[field1.Name] = (field1.FieldType)obj;
-             *      break;
-             *   case 64646:
-             *      obj.[field1.Name] = (field1.FieldType)obj;
-             *      break;
-             *   case 575857:
-             *      obj.[field1.Name] = (field1.FieldType)obj;
-             *      break;
-             *   default:
-             *      break;
-             * }
-             * 
-             * 
-             */
+            methodBody.Add(eva);
+
             MemberInfo[] memberList = type.GetMembers(BindingFlags.SetField | BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public);
             List<SwitchCase> caseExpressions = new List<SwitchCase>();
             foreach (var member in memberList)
@@ -61,22 +51,32 @@ namespace Zata.FastReflection
                 if (!IsMemberHaveSet(member))
                     continue;
 
-                var targetMember = Expression.PropertyOrField(Argument, member.Name);
+                var targetMember = Expression.PropertyOrField(objParameterExpr, member.Name);
 
                 // 类型正确
-                var SwitchCaseBlock = AssignPropertyOrFieldNew(Argument, member, targetMember, valueExpression);
-                SwitchCase caseExpr = Expression.SwitchCase(SwitchCaseBlock, GetEntityNameArrayExpression(member, ignoreCase));
+                var SwitchCaseBlock = AssignPropertyOrFieldNew(objParameterExpr, member, targetMember, valueParameterExpression);
+                SwitchCase caseExpr = Expression.SwitchCase(SwitchCaseBlock, GetEntityNameArrayExpression(member));
 
                 caseExpressions.Add(caseExpr);
             }
             //var switchExpression = Expression.Switch(eva, Expression.Throw(Expression.New(typeof(ArgumentException))), caseExpressions.ToArray());
-            var switchExpression = Expression.Switch(eva, Expression.Constant(false), caseExpressions.ToArray());
+
+            Expression defaultCaseExpr = null;
+
+            if (valueType == typeof(object))
+                defaultCaseExpr = Expression.Constant(null);
+            else
+                defaultCaseExpr = Expression.Constant(string.Empty);
+
+            var switchExpression = Expression.Switch(v, Expression.Constant(false), caseExpressions.ToArray());
             methodBody.Add(switchExpression);
 
             //组装函数, 注意局部变量在第二个参数注册
             var methodBodyExpr = Expression.Block(typeof(void), new[] { v }, methodBody);
 
-            return Expression.Lambda<Action<T, string, object>>(methodBodyExpr, Argument, nameExpression, valueExpression).Compile();
+            var expr = Expression.Lambda<Action<T, string, bool, TValue>>(methodBodyExpr, objParameterExpr, nameParameterExpr, ignoreCaseParameterExpr, valueParameterExpression);
+
+            return expr.Compile();
         }
 
        
@@ -89,14 +89,21 @@ namespace Zata.FastReflection
         /// 根据名字获取指定的值
         /// </summary>
         /// <returns></returns>
-        internal static Func<T, string, object> GetValueFunction<T>(bool ignoreCase = false)
+        internal static Func<T, string, bool, TReturn> GetValueFunction<T, TReturn>()
         {
             var type = typeof(T);
-            var Argument = Expression.Parameter(type, "obj");
-            var nameExpression = Expression.Parameter(typeof(string), "name");
-            var v = Expression.Variable(typeof(int));
+            var returnType = typeof(TReturn);
+            var objParameterExpr = Expression.Parameter(type, "obj");
+            var nameParameterExpr = Expression.Parameter(typeof(string), "name");
+            var ignoreCaseParameterExpr = Expression.Parameter(typeof(bool), "ignoreCase");
+            
             var methodBody = new List<Expression>();
-            var hashCode = Expression.Call(ignoreCase ? Expression.Call(nameExpression, typeof(string).GetMethod("ToUpperInvariant")) as Expression : nameExpression, typeof(string).GetMethod("GetHashCode"));
+
+            var v = Expression.Variable(typeof(int));
+            var hashCode = Expression.Condition(
+                Expression.IsTrue(ignoreCaseParameterExpr),
+                Expression.Call(GetNameHashCodeMethod, nameParameterExpr),
+                Expression.Call(nameParameterExpr, typeof(string).GetMethod("GetHashCode")));
             var eva = Expression.Assign(v, hashCode);
             methodBody.Add(eva);
 
@@ -107,23 +114,78 @@ namespace Zata.FastReflection
                 if (member.MemberType != MemberTypes.Property && member.MemberType != MemberTypes.Field)
                     continue;
 
-                var memberValue = Expression.Convert(Expression.PropertyOrField(Argument, member.Name), typeof(object));
-                var caseExpr = Expression.SwitchCase(memberValue, GetEntityNameArrayExpression(member, ignoreCase));
+                Expression memberValue = Expression.PropertyOrField(objParameterExpr, member.Name);
+                
+                Expression ConverterExpr = null;
+                
+                if(memberValue.Type == returnType)
+                    ConverterExpr = memberValue;
+                else if (returnType == typeof(object))
+                {
+                    ConverterExpr = Expression.Convert(memberValue, returnType);
+                }
+                else if(returnType == typeof(string))
+                {
+                    ConverterExpr = Expression.Call(ConvertStringMethod, Expression.Convert(memberValue, typeof(object)));
+                }
+                else
+                {
+                    ConverterExpr = Expression.Call(ConvertObjectMethod, memberValue);
+                }
+
+                var caseExpr = Expression.SwitchCase(ConverterExpr, GetEntityNameArrayExpression(member));
                 caseExpressions.Add(caseExpr);
             }
 
-            var switchExpression = Expression.Switch(v, Expression.Constant(null), caseExpressions.ToArray());
+            Expression defaultCaseExpr = null;
+
+            if (returnType == typeof(object))
+                defaultCaseExpr = Expression.Constant(null);
+            else
+                defaultCaseExpr = Expression.Constant(string.Empty);
+
+
+            var switchExpression = Expression.Switch(v,
+
+                defaultCaseExpr, 
+                
+                caseExpressions.ToArray());
 
             methodBody.Add(switchExpression);
 
-            var methodBodyExpr = Expression.Block(typeof(object), new[] { v }, methodBody);
+            var methodBodyExpr = Expression.Block(returnType, new[] { v }, methodBody);
 
-            return Expression.Lambda<Func<T, string, object>>(methodBodyExpr, Argument, nameExpression).Compile();
+            return Expression.Lambda<Func<T, string, bool, TReturn>>(methodBodyExpr, objParameterExpr, nameParameterExpr, ignoreCaseParameterExpr).Compile();
         }
 
         #endregion
 
         #region 内部方法
+
+        #region GetHashCode(返回小写的HashCode)
+
+        static Dictionary<int, int> NameDict = new Dictionary<int, int>();
+
+        static MethodInfo GetNameHashCodeMethod = typeof(EntityToolsInternal).GetMethod("GetNameHashCode", BindingFlags.Static | BindingFlags.NonPublic);
+
+        static int GetNameHashCode(string name)
+        {
+            int i = name.GetHashCode();
+
+            if (NameDict.ContainsKey(i))
+                return NameDict[i];
+
+            int j = name.ToUpperInvariant().GetHashCode();
+            lock (NameDict)
+            {
+                if (!NameDict.ContainsKey(i))
+                    NameDict.Add(i, j);
+            }
+
+            return j;
+        }
+
+        #endregion
 
         #region 数据类型转换
 
@@ -150,25 +212,25 @@ namespace Zata.FastReflection
         {
             //数据类型一致
             if (target.Type == value.Type)
-                return value;
+                return Expression.Block(value, Expression.Constant(true));
 
             Expression Convertor = null;
             //判断target是否字符串
-            if (target.Type == typeof(string))
+            if (target.Type == typeof(string)  && value.Type == typeof(object))
             {
                 Convertor = Expression.Condition(
                     Expression.TypeIs(value, typeof(string)),
                     Expression.TypeAs(value, typeof(string)),
                     Expression.Call(ConvertStringMethod, value));
             }
-            else if(target.Type == typeof(Int32))
+            else if (target.Type == typeof(Int32) && value.Type == typeof(object))
             {
                 Convertor = Expression.Condition(
                     Expression.TypeIs(value, typeof(Int32)),
                     Expression.Convert(value, typeof(Int32)),
                     Expression.Call(ConvertInt32Method, value));
             }
-            else if (target.Type == typeof(DateTime))
+            else if (target.Type == typeof(DateTime) && value.Type == typeof(object))
             {
                 Convertor = Expression.Condition(
                     Expression.TypeIs(value, typeof(DateTime)),
@@ -204,7 +266,7 @@ namespace Zata.FastReflection
             if (o.GetType() == targetType)
                 return o;
 
-            if (targetType is IConvertible)
+            if (o is IConvertible)
             {
                 if (targetType.IsEnum)
                     return Enum.Parse(targetType, o.ToString(), true);
@@ -220,17 +282,35 @@ namespace Zata.FastReflection
 
         #endregion
 
-        private static Expression[] GetEntityNameArrayExpression(MemberInfo member, bool ignoreCase)
+        
+
+        private static Expression[] GetEntityNameArrayExpression(MemberInfo member)
         {
             var testCases = new List<Expression>();
+
             // 计算HashCode的过程放在了代码生成阶段，使用Dictionary的方式时HashCode是执行时计算的。
-            testCases.Add(Expression.Constant(ignoreCase ? member.Name.ToUpperInvariant().GetHashCode() : member.Name.GetHashCode()));
+            GetNameHashCode(member.Name);
+            GetNameHashCode(member.Name.ToUpperInvariant());
+            int a = member.Name.GetHashCode();
+            int b = member.Name.ToUpperInvariant().GetHashCode();
+
+            testCases.Add(Expression.Constant(a));
+            testCases.Add(Expression.Constant(b));
+            
             foreach (var attribute in member.GetCustomAttributes(true))
             {
-                if (attribute is EntityAttribute)
+                if (attribute is EntityAliasAttribute)
                 {
-                    var compatibleName = (attribute as EntityAttribute).Name;
-                    testCases.Add(Expression.Constant(ignoreCase ? compatibleName.ToUpperInvariant().GetHashCode() : compatibleName.GetHashCode()));
+                    var compatibleName = (attribute as EntityAliasAttribute).Name;
+
+                    GetNameHashCode(compatibleName);
+                    GetNameHashCode(compatibleName.ToUpperInvariant());
+
+                    int c = compatibleName.GetHashCode();
+                    int d = compatibleName.GetHashCode();
+                    
+                    testCases.Add(Expression.Constant(c));
+                    testCases.Add(Expression.Constant(d));
                 }
             }
 

@@ -16,13 +16,13 @@ namespace Zata.Test
         /// <param name="DataName">属性名称</param>
         /// <param name="DataValue"></param>
         /// <returns></returns>
-        bool SetValue(string DataName, object DataValue);
+        bool SetValue(string DataName, bool IgnoreCase, object DataValue);
 
         /// <summary>
         /// 根据名称获取成员的值
         /// </summary>
         /// <param name="DataName">属性名称</param>
         /// <returns></returns>
-        object GetValue(string DataName);
+        object GetValue(string DataName, bool IgnoreCase);
     }
 }

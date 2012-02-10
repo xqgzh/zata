@@ -31,7 +31,7 @@ namespace ObjKnife.Test
 
             var directCall = new PerformanceTimer(() => { (obj as DataObjectModel).NameField = (obj as DataObjectModel).Name; }).Run(10000000);
             var delegateCall = new PerformanceTimer(() => { var value = func(obj); }).Run(10000000);
-            var interfaceCall = new PerformanceTimer(() => { (obj as IDataObject).SetValue(propertyName, (obj as IDataObject).GetValue(propertyName)); }).Run(10000000);
+            var interfaceCall = new PerformanceTimer(() => { (obj as IDataObject).SetValue(propertyName, false, (obj as IDataObject).GetValue(propertyName, false)); }).Run(10000000);
             var reflectionCall = 0; // new PerformanceTimer(() => { var value = obj.GetPropertyValueByReflection(propertyName); }).Run(10000000);
             var entityToolsCall = new PerformanceTimer(() => { EntityTools<DataObjectModel>.SetValue(obj, propertyName, EntityTools<DataObjectModel>.GetValue(obj, propertyName)); }).Run(10000000);
             var entityToolsICCall = new PerformanceTimer(() => { EntityTools<DataObjectModel>.SetValueIgnoreCase(obj, propertyName, EntityTools<DataObjectModel>.GetValueIgnoreCase(obj, propertyName)); }).Run(10000000);
@@ -125,11 +125,11 @@ namespace ObjKnife.Test
             var sourceType = source.GetType();
             foreach (var memberInfo in sourceType.GetProperties())
             {
-                target.SetValue(memberInfo.Name, source.GetValue(memberInfo.Name));
+                target.SetValue(memberInfo.Name, false, source.GetValue(memberInfo.Name, false));
             }
             foreach (var memberInfo in sourceType.GetFields())
             {
-                target.SetValue(memberInfo.Name, source.GetValue(memberInfo.Name));
+                target.SetValue(memberInfo.Name, false, source.GetValue(memberInfo.Name, false));
             }
         }
 
@@ -154,7 +154,7 @@ namespace ObjKnife.Test
 
             tester.Build("直接调用", () => { (obj as DataObjectModel).NameField = (obj as DataObjectModel).Name; });
             tester.Build("委托调用", () => { var value = func(obj); });
-            tester.Build("接口调用用时", () => { (obj as IDataObject).SetValue(propertyName, (obj as IDataObject).GetValue(propertyName)); });
+            tester.Build("接口调用用时", () => { (obj as IDataObject).SetValue(propertyName, false, (obj as IDataObject).GetValue(propertyName, false)); });
             tester.Build("反射调用用时", () => { /*var value = obj.GetPropertyValueByReflection(propertyName);*/ });
             tester.Build("EntityTools<T>调用", () => { EntityTools<DataObjectModel>.SetValue(obj, propertyName, EntityTools<DataObjectModel>.GetValue(obj, propertyName)); });
             tester.Build("IEntity<T>调用", () => { obj.SetEntityValue(propertyName, obj.GetEntityValue(propertyName)); });

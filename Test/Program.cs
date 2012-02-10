@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.CSharp;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -15,9 +16,19 @@ namespace TestConsole
         {
             ClassA a = new ClassA();
 
-            EntityTools<ClassA>.SetValue(a, "UserName", "Test1");
+            a.testEnum = TestEnum.Test1;
 
-            Console.WriteLine(EntityTools<ClassA>.GetValue(a, "UserName"));
+            EntityTools<ClassA>.SetValue(a, "testEnum", false, 2);
+
+            Console.WriteLine("Set: {0}", a.testEnum);
+
+            a.testEnum = TestEnum.Test3;
+
+            Console.WriteLine(EntityTools<ClassA>.GetValue(a, "testEnum", false));
+
+            ClassB b = new ClassB();
+
+            //b.SetEntityValue(
         }
     }
 
@@ -34,13 +45,14 @@ namespace TestConsole
 
     public enum TestEnum
     {
-        Test1,
-        Test2
+        Test1 = 1,
+        Test2,
+        Test3
     }
 
-    public class ClassB
+    public class ClassB : IEntity<ClassB>
     {
-
+        public string UserName { get; set; }
     }
 }
 
