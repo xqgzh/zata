@@ -16,7 +16,10 @@ namespace Zata.FastReflection
 
         public static int PropertyCount;
         public static int FieldCount;
+        public static int FieldOrPropertyCount;
 
+        public static FieldInfo[] Feilds;
+        public static PropertyInfo[] Propertys;
 
         static EntityTools()
         {

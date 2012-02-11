@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Zata.FastReflection;
 using System.Diagnostics;
 using Zata.Test.Performance;
+using System.Runtime.CompilerServices;
 
 namespace Zata.Test
 {
@@ -83,6 +84,34 @@ namespace Zata.Test
         }
 
         [TestMethod]
+        public void TestStruct()
+        {
+            DataObjectModel obj = new DataObjectModel();
+
+            obj.StructTest.MyEnum = Day.A2;
+            obj.StructTest.MyInt32 = 123;
+            obj.StructTest.MyString = "temp";
+
+            MyStruct m;
+
+            m.MyEnum = Day.A5;
+            m.MyInt32 = 999;
+            m.MyString = "testStruct";
+
+            EntityTools<DataObjectModel>.SetValue(obj, "StructTest", false, m);
+
+            Assert.AreEqual(m.MyEnum, obj.StructTest.MyEnum);
+            Assert.AreEqual(m.MyInt32, obj.StructTest.MyInt32);
+            Assert.AreEqual(m.MyString, obj.StructTest.MyString);
+
+            MyStruct d = (MyStruct)EntityTools<DataObjectModel>.GetValue(obj, "STRUCTTEST", true);
+
+            Assert.AreEqual(m.MyEnum, d.MyEnum);
+            Assert.AreEqual(m.MyInt32, d.MyInt32);
+            Assert.AreEqual(m.MyString, d.MyString);
+        }
+
+        [TestMethod]
         public void TestInt32()
         {
             DataObjectModel obj = new DataObjectModel();
@@ -137,54 +166,47 @@ namespace Zata.Test
         }
 
         [TestMethod]
-        public void Perf_GetSet()
+        public void TestEntityAlias()
         {
-            Trace.WriteLine("获取/设置性能测试， 忽略大小写");
+            DataObjectModel obj = new DataObjectModel();
 
-            var obj = new DataObjectModel();
-            object glocalInstance = obj;
-            string propertyName = "Name";
-            var func = (Func<DataObjectModel, string>)Delegate.CreateDelegate(typeof(Func<DataObjectModel, string>), typeof(DataObjectModel).GetMethod("get_Name"));
+            obj.Property = "temp";
 
-            bool Ignore = false;
+            string s = "TestAlias";
 
-            TestCase tester = new TestCase();
+            EntityTools<DataObjectModel>.SetValueString(obj, "Prop", false, s);
 
-            tester.Watcher = (i, name, sw) =>
-            {
-                Trace.WriteLine(string.Format("{0}:{1}", name, sw.Elapsed));
-            };
+            Assert.AreEqual(s, obj.Property);
 
-            tester.Build("直接调用时", () => { (obj as DataObjectModel).NameField = (obj as DataObjectModel).Name; });
-            tester.Build("委托调用时", () => { var value = func(obj); });
-            tester.Build("接口调用时", () => { (obj as IDataObject).SetValue(propertyName, Ignore, (obj as IDataObject).GetValue(propertyName, Ignore)); });
-            tester.Build("工具调用时", () => { EntityTools<DataObjectModel>.SetValue(obj, propertyName, Ignore, EntityTools<DataObjectModel>.GetValue(obj, propertyName, Ignore)); });
-            tester.Build("字符串工具", () => { EntityTools<DataObjectModel>.SetValueString(obj, propertyName, Ignore, EntityTools<DataObjectModel>.GetValueString(obj, propertyName, Ignore)); });
-            tester.Build("空接口调用", () => { obj.SetEntityValue(propertyName, Ignore, obj.GetEntityValue(propertyName, Ignore)); });
+            string v = EntityTools<DataObjectModel>.GetValueString(obj, "prop", true);
 
-            tester.StepWatcher = i =>
-            {
-                Trace.WriteLine(string.Format("执行{0:###,###,###}次的结果: ", i));
-            };
-
-            int times = 10000;
-
-            tester.Execute(1000 * times);
-
+            Assert.AreEqual(s, v);
         }
 
         [TestMethod]
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public void Perf_GetSet()
+        {
+            Trace.WriteLine("获取/设置性能测试， 大小写敏感");
+            GetSet(false);
+        }
+
+        [TestMethod]
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         public void Perf_GetSet_IgnoreCase()
         {
 
             Trace.WriteLine("获取/设置性能测试， 忽略大小写");
+            GetSet(true);
+        }
 
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        private void GetSet(bool ignoreCase)
+        {
             var obj = new DataObjectModel();
             object glocalInstance = obj;
             string propertyName = "Name";
             var func = (Func<DataObjectModel, string>)Delegate.CreateDelegate(typeof(Func<DataObjectModel, string>), typeof(DataObjectModel).GetMethod("get_Name"));
-
-            bool Ignore = true;
 
             TestCase tester = new TestCase();
 
@@ -195,10 +217,10 @@ namespace Zata.Test
 
             tester.Build("直接调用时", () => { (obj as DataObjectModel).NameField = (obj as DataObjectModel).Name; });
             tester.Build("委托调用时", () => { var value = func(obj); });
-            tester.Build("接口调用时", () => { (obj as IDataObject).SetValue(propertyName, Ignore, (obj as IDataObject).GetValue(propertyName, Ignore)); });
-            tester.Build("工具调用时", () => { EntityTools<DataObjectModel>.SetValue(obj, propertyName, Ignore, EntityTools<DataObjectModel>.GetValue(obj, propertyName, Ignore)); });
-            tester.Build("字符串工具", () => { EntityTools<DataObjectModel>.SetValueString(obj, propertyName, Ignore, EntityTools<DataObjectModel>.GetValueString(obj, propertyName, Ignore)); });
-            tester.Build("空接口调用", () => { obj.SetEntityValue(propertyName, Ignore, obj.GetEntityValue(propertyName, Ignore)); });
+            tester.Build("接口调用时", () => { (obj as IDataObject).SetValue(propertyName, ignoreCase, (obj as IDataObject).GetValue(propertyName, ignoreCase)); });
+            tester.Build("工具调用时", () => { EntityTools<DataObjectModel>.SetValue(obj, propertyName, ignoreCase, EntityTools<DataObjectModel>.GetValue(obj, propertyName, ignoreCase)); });
+            tester.Build("字符串工具", () => { EntityTools<DataObjectModel>.SetValueString(obj, propertyName, ignoreCase, EntityTools<DataObjectModel>.GetValueString(obj, propertyName, ignoreCase)); });
+            tester.Build("空接口调用", () => { obj.SetEntityValue(propertyName, ignoreCase, obj.GetEntityValue(propertyName, ignoreCase)); });
 
             tester.StepWatcher = i =>
             {
@@ -209,7 +231,6 @@ namespace Zata.Test
 
             tester.Execute(1000 * times);
         }
-
         
     }
 }

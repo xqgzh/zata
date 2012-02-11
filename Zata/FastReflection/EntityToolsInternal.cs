@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
+using System.Diagnostics;
 
 namespace Zata.FastReflection
 {
@@ -21,7 +22,7 @@ namespace Zata.FastReflection
         {
             Type type = typeof(T);
             Type valueType = typeof(TValue);
-
+            
             
 
             // public void Set(T obj, string name, object value)
@@ -35,11 +36,12 @@ namespace Zata.FastReflection
             var v = Expression.Variable(typeof(int));
             var hashCode = Expression.Condition(
                 Expression.IsTrue(ignoreCaseParameterExpr), 
-                Expression.Call(GetNameHashCodeMethod, nameParameterExpr),
+                Expression.Call(Method_GetHashCodeLower, nameParameterExpr),
                 Expression.Call(nameParameterExpr, typeof(string).GetMethod("GetHashCode")));
             var eva = Expression.Assign(v, hashCode);
 
             methodBody.Add(eva);
+
 
             MemberInfo[] memberList = type.GetMembers(BindingFlags.SetField | BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public);
             List<SwitchCase> caseExpressions = new List<SwitchCase>();
@@ -54,7 +56,9 @@ namespace Zata.FastReflection
                 var targetMember = Expression.PropertyOrField(objParameterExpr, member.Name);
 
                 // 类型正确
-                var SwitchCaseBlock = AssignPropertyOrFieldNew(objParameterExpr, member, targetMember, valueParameterExpression);
+                var SwitchCaseBlock = AssignPropertyOrFieldNew(
+                    objParameterExpr, member, 
+                    targetMember, valueParameterExpression);
                 SwitchCase caseExpr = Expression.SwitchCase(SwitchCaseBlock, GetEntityNameArrayExpression(member));
 
                 caseExpressions.Add(caseExpr);
@@ -102,7 +106,7 @@ namespace Zata.FastReflection
             var v = Expression.Variable(typeof(int));
             var hashCode = Expression.Condition(
                 Expression.IsTrue(ignoreCaseParameterExpr),
-                Expression.Call(GetNameHashCodeMethod, nameParameterExpr),
+                Expression.Call(Method_GetHashCodeLower, nameParameterExpr),
                 Expression.Call(nameParameterExpr, typeof(string).GetMethod("GetHashCode")));
             var eva = Expression.Assign(v, hashCode);
             methodBody.Add(eva);
@@ -117,21 +121,8 @@ namespace Zata.FastReflection
                 Expression memberValue = Expression.PropertyOrField(objParameterExpr, member.Name);
                 
                 Expression ConverterExpr = null;
-                
-                if(memberValue.Type == returnType)
-                    ConverterExpr = memberValue;
-                else if (returnType == typeof(object))
-                {
-                    ConverterExpr = Expression.Convert(memberValue, returnType);
-                }
-                else if(returnType == typeof(string))
-                {
-                    ConverterExpr = Expression.Call(ConvertStringMethod, Expression.Convert(memberValue, typeof(object)));
-                }
-                else
-                {
-                    ConverterExpr = Expression.Call(ConvertObjectMethod, memberValue);
-                }
+
+                ConverterExpr = GetMemberValue(returnType, nameParameterExpr, memberValue, ConverterExpr);
 
                 var caseExpr = Expression.SwitchCase(ConverterExpr, GetEntityNameArrayExpression(member));
                 caseExpressions.Add(caseExpr);
@@ -158,31 +149,67 @@ namespace Zata.FastReflection
             return Expression.Lambda<Func<T, string, bool, TReturn>>(methodBodyExpr, objParameterExpr, nameParameterExpr, ignoreCaseParameterExpr).Compile();
         }
 
+        private static Expression GetMemberValue(Type returnType, ParameterExpression nameParameterExpr, Expression memberValue, Expression ConverterExpr)
+        {
+            if (memberValue.Type == returnType)
+                ConverterExpr = memberValue;
+            else if (returnType == typeof(object))
+            {
+                ConverterExpr = Expression.Convert(memberValue, returnType);
+            }
+            else if (returnType == typeof(string))
+            {
+                ConverterExpr = Expression.Call(Method_ConvertString, Expression.Convert(memberValue, typeof(object)));
+            }
+            else if (returnType == typeof(Int32))
+            {
+                ConverterExpr = Expression.Call(Method_ConvertString, Expression.Convert(memberValue, typeof(Int32)));
+            }
+            else
+            {
+                ConverterExpr = Expression.Call(Method_ConvertObject, nameParameterExpr, Expression.Constant(returnType), Expression.Constant(IsIConvertible(returnType)), memberValue);
+            }
+            return ConverterExpr;
+        }
+
         #endregion
 
         #region 内部方法
 
         #region GetHashCode(返回小写的HashCode)
 
-        static Dictionary<int, int> NameDict = new Dictionary<int, int>();
-
-        static MethodInfo GetNameHashCodeMethod = typeof(EntityToolsInternal).GetMethod("GetNameHashCode", BindingFlags.Static | BindingFlags.NonPublic);
-
-        static int GetNameHashCode(string name)
+        private static Expression[] GetEntityNameArrayExpression(MemberInfo member)
         {
-            int i = name.GetHashCode();
+            var testCases = new List<Expression>();
 
-            if (NameDict.ContainsKey(i))
-                return NameDict[i];
+            
+            // 计算HashCode的过程放在了代码生成阶段，使用Dictionary的方式时HashCode是执行时计算的。
+            StringLowerTable.GetLowerHashCode(member.Name);
+            StringLowerTable.GetLowerHashCode(member.Name.ToUpperInvariant());
+            int a = member.Name.GetHashCode();
+            int b = member.Name.ToLowerInvariant().GetHashCode();
 
-            int j = name.ToUpperInvariant().GetHashCode();
-            lock (NameDict)
+            testCases.Add(Expression.Constant(a));
+            testCases.Add(Expression.Constant(b));
+
+            foreach (var attribute in member.GetCustomAttributes(true))
             {
-                if (!NameDict.ContainsKey(i))
-                    NameDict.Add(i, j);
+                if (attribute is EntityAliasAttribute)
+                {
+                    var compatibleName = (attribute as EntityAliasAttribute).Name;
+
+                    StringLowerTable.GetLowerHashCode(compatibleName);
+                    StringLowerTable.GetLowerHashCode(compatibleName.ToLowerInvariant());
+
+                    int c = compatibleName.GetHashCode();
+                    int d = compatibleName.ToLowerInvariant().GetHashCode();
+
+                    testCases.Add(Expression.Constant(c));
+                    testCases.Add(Expression.Constant(d));
+                }
             }
 
-            return j;
+            return testCases.ToArray();
         }
 
         #endregion
@@ -211,47 +238,51 @@ namespace Zata.FastReflection
         static Expression AssignPropertyOrFieldNew(Expression obj, MemberInfo member, Expression target, Expression value)
         {
             //数据类型一致
-            if (target.Type == value.Type)
-                return Expression.Block(value, Expression.Constant(true));
-
             Expression Convertor = null;
+
+            
             //判断target是否字符串
-            if (target.Type == typeof(string)  && value.Type == typeof(object))
+            if (target.Type == value.Type)
             {
+                Convertor = value;
+            }
+            else if (target.Type == typeof(string) && value.Type == typeof(object))
+            {
+
                 Convertor = Expression.Condition(
                     Expression.TypeIs(value, typeof(string)),
                     Expression.TypeAs(value, typeof(string)),
-                    Expression.Call(ConvertStringMethod, value));
+                    Expression.Call(Method_ConvertString, value));
             }
             else if (target.Type == typeof(Int32) && value.Type == typeof(object))
             {
                 Convertor = Expression.Condition(
                     Expression.TypeIs(value, typeof(Int32)),
                     Expression.Convert(value, typeof(Int32)),
-                    Expression.Call(ConvertInt32Method, value));
+                    Expression.Call(Method_ConvertInt32, value));
             }
             else if (target.Type == typeof(DateTime) && value.Type == typeof(object))
             {
                 Convertor = Expression.Condition(
                     Expression.TypeIs(value, typeof(DateTime)),
                     Expression.Convert(value, typeof(DateTime)),
-                    Expression.Call(ConvertDateTimeMethod, value));
+                    Expression.Call(Method_ConvertDateTime, value));
             }
             else
-                Convertor = Expression.Convert(Expression.Call(ConvertObjectMethod, Expression.Constant(target.Type), value), target.Type);
+            {
+                Convertor = Expression.Call(typeof(EntityToolsInternal), "ConvertObject", new Type[]{target.Type}, Expression.Constant(target.ToString()), Expression.Constant(target.Type), Expression.Constant(IsIConvertible(target.Type)), value);
+                //Convertor = Expression.Convert(Expression.Call(Method_ConvertObject, Expression.Constant(target.ToString()), Expression.Constant(target.Type), Expression.Constant(IsIConvertible(target.Type)), value), target.Type);
+            }
 
             //Field则直接转换, 如果是Property则调用方法
             var AssignExpr = (member is FieldInfo) ? 
                 (Expression.Assign(target, Convertor) as Expression) :
                 Expression.Call(obj, (member as PropertyInfo).GetSetMethod(), Convertor);
-            
+
             return Expression.Block(AssignExpr, Expression.Constant(true));
         }
 
-        static MethodInfo ConvertStringMethod = typeof(System.Convert).GetMethod("ToString", new Type[]{typeof(object)});
-        static MethodInfo ConvertInt32Method = typeof(System.Convert).GetMethod("ToInt32", new Type[] { typeof(object) });
-        static MethodInfo ConvertDateTimeMethod = typeof(System.Convert).GetMethod("ToDateTime", new Type[] { typeof(object) });
-        static MethodInfo ConvertObjectMethod = typeof(EntityToolsInternal).GetMethod("ConvertObject", BindingFlags.NonPublic | BindingFlags.Static);
+        #endregion
 
         /// <summary>
         /// 参数类型转换
@@ -259,14 +290,49 @@ namespace Zata.FastReflection
         /// <param name="targetType"></param>
         /// <param name="o"></param>
         /// <returns></returns>
-        static object ConvertObject(Type targetType, object o)
+        static TTarget ConvertObject<TTarget>(string name, Type targetType, bool IsConvertible, object o)
         {
-            if (o == null) return null;
+            if (o == null)
+            {
+                if (targetType.IsValueType)
+                    throw new FormatException(name + "(" + targetType.Name + ")无法赋值为空");
+                return default(TTarget);
+            }
 
-            if (o.GetType() == targetType)
-                return o;
+            if (o.GetType() == targetType) return (TTarget)o;
 
-            if (o is IConvertible)
+            if (IsConvertible)
+            {
+                if (targetType.IsEnum)
+                    return (TTarget)Enum.Parse(targetType, o.ToString(), true);
+
+                if (o is IConvertible)
+                    return (TTarget)System.Convert.ChangeType(o, targetType);
+
+                return (TTarget)System.Convert.ChangeType(o, targetType);
+            }
+
+            return (TTarget)o;
+        }
+
+        /// <summary>
+        /// 参数类型转换
+        /// </summary>
+        /// <param name="targetType"></param>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        static object ConvertObject2(string name, Type targetType, bool IsConvertible, object o)
+        {
+            if (o == null)
+            {
+                if (targetType.IsValueType)
+                    throw new FormatException(name + "(" + targetType.Name + ")无法赋值为空");
+                return null;
+            }
+
+            if (o.GetType() == targetType) return o;
+
+            if (IsConvertible)
             {
                 if (targetType.IsEnum)
                     return Enum.Parse(targetType, o.ToString(), true);
@@ -274,48 +340,22 @@ namespace Zata.FastReflection
                 if (o is IConvertible)
                     return System.Convert.ChangeType(o, targetType);
 
-                return System.Convert.ChangeType(o.ToString(), targetType);
+                return System.Convert.ChangeType(o, targetType);
             }
-            
+
             return o;
         }
 
-        #endregion
+        static Type IConvertibleType = typeof(IConvertible);
 
-        
-
-        private static Expression[] GetEntityNameArrayExpression(MemberInfo member)
+        static bool IsIConvertible(Type type)
         {
-            var testCases = new List<Expression>();
+            foreach (var t in type.GetInterfaces())
+                if (t == IConvertibleType) return true;
 
-            // 计算HashCode的过程放在了代码生成阶段，使用Dictionary的方式时HashCode是执行时计算的。
-            GetNameHashCode(member.Name);
-            GetNameHashCode(member.Name.ToUpperInvariant());
-            int a = member.Name.GetHashCode();
-            int b = member.Name.ToUpperInvariant().GetHashCode();
-
-            testCases.Add(Expression.Constant(a));
-            testCases.Add(Expression.Constant(b));
-            
-            foreach (var attribute in member.GetCustomAttributes(true))
-            {
-                if (attribute is EntityAliasAttribute)
-                {
-                    var compatibleName = (attribute as EntityAliasAttribute).Name;
-
-                    GetNameHashCode(compatibleName);
-                    GetNameHashCode(compatibleName.ToUpperInvariant());
-
-                    int c = compatibleName.GetHashCode();
-                    int d = compatibleName.GetHashCode();
-                    
-                    testCases.Add(Expression.Constant(c));
-                    testCases.Add(Expression.Constant(d));
-                }
-            }
-
-            return testCases.ToArray();
+            return false;
         }
+
 
         public static bool IsMemberHaveSet(MemberInfo m)
         {
@@ -331,8 +371,20 @@ namespace Zata.FastReflection
 
         #endregion
 
-        static MethodInfo ConsoleWriteLineString = typeof(Console).GetMethod("WriteLine", new[] { typeof(string) });
-        static MethodInfo ConsoleWriteLineInt32 = typeof(Console).GetMethod("WriteLine", new[] { typeof(Int32) });
-        static MethodInfo ConsoleWriteLineObject = typeof(Console).GetMethod("WriteLine", new[] { typeof(object) });
+        #region DEBUG相关方法
+
+        static MethodInfo Method_ConvertString = typeof(System.Convert).GetMethod("ToString", new Type[] { typeof(object) });
+        static MethodInfo Method_ConvertInt32 = typeof(System.Convert).GetMethod("ToInt32", new Type[] { typeof(object) });
+        static MethodInfo Method_ConvertInt64 = typeof(System.Convert).GetMethod("ToInt64", new Type[] { typeof(object) });
+        static MethodInfo Method_ConvertDateTime = typeof(System.Convert).GetMethod("ToDateTime", new Type[] { typeof(object) });
+        static MethodInfo Method_ConvertObject = typeof(EntityToolsInternal).GetMethod("ConvertObject2", BindingFlags.NonPublic | BindingFlags.Static);
+        static MethodInfo Method_GetHashCodeLower = typeof(StringLowerTable).GetMethod("GetLowerHashCode", BindingFlags.Static | BindingFlags.Public);
+
+        static MethodInfo Method_TraceWriteLineString = typeof(Trace).GetMethod("WriteLine", new[] { typeof(string) });
+        static MethodInfo Method_ConsoleWriteLineString = typeof(Console).GetMethod("WriteLine", new[] { typeof(string) });
+        static MethodInfo Method_ConsoleWriteLineInt32 = typeof(Console).GetMethod("WriteLine", new[] { typeof(Int32) });
+        static MethodInfo Method_ConsoleWriteLineObject = typeof(Console).GetMethod("WriteLine", new[] { typeof(object) });
+
+        #endregion
     }
 }

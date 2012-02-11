@@ -1,5 +1,6 @@
 ﻿using System;
 using Zata.FastReflection;
+using System.Runtime.Serialization;
 
 namespace Zata.Test
 {
@@ -24,7 +25,7 @@ namespace Zata.Test
                     case "ReferenceCount": ReferenceCount = Convert.ToString(dataValue); break;
                     case "NameField": NameField = Convert.ToString(dataValue); break;
                     case "KeyField": KeyField = Convert.ToString(dataValue); break;
-                    case "StructTest": StructTest = (UVW)Convert.ChangeType(dataValue, typeof(UVW)); break;
+                    case "StructTest": StructTest = (MyStruct)Convert.ChangeType(dataValue, typeof(MyStruct)); break;
                     default:
                         return false;
                 }
@@ -119,7 +120,7 @@ namespace Zata.Test
 
         public Day MyDay;
 
-        public UVW StructTest { get; set; }
+        public MyStruct StructTest;
 
         public int BookCount;
 
@@ -142,10 +143,10 @@ namespace Zata.Test
         A2, A3, A4, A5
     }
 
-    public struct UVW
+    public struct MyStruct
     {
-        int a;
-        int b;
-        int c;
+        public int MyInt32;
+        public string MyString;
+        public Day MyEnum;
     }
 }
