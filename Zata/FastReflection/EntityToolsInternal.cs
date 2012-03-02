@@ -18,13 +18,11 @@ namespace Zata.FastReflection
         /// 获取设置函数
         /// </summary>
         /// <returns></returns>
-        public static Action<T, string, bool, TValue> SetValueFunction<T, TValue>()
+        public static Func<T, string, bool, TValue, bool> SetValueFunction<T, TValue>()
         {
             Type type = typeof(T);
             Type valueType = typeof(TValue);
             
-            
-
             // public void Set(T obj, string name, object value)
             var objParameterExpr = Expression.Parameter(type, "obj");
             var nameParameterExpr = Expression.Parameter(typeof(string), "name");
@@ -76,9 +74,9 @@ namespace Zata.FastReflection
             methodBody.Add(switchExpression);
 
             //组装函数, 注意局部变量在第二个参数注册
-            var methodBodyExpr = Expression.Block(typeof(void), new[] { v }, methodBody);
+            var methodBodyExpr = Expression.Block(typeof(bool), new[] { v }, methodBody);
 
-            var expr = Expression.Lambda<Action<T, string, bool, TValue>>(methodBodyExpr, objParameterExpr, nameParameterExpr, ignoreCaseParameterExpr, valueParameterExpression);
+            var expr = Expression.Lambda<Func<T, string, bool, TValue, bool>>(methodBodyExpr, objParameterExpr, nameParameterExpr, ignoreCaseParameterExpr, valueParameterExpression);
 
             return expr.Compile();
         }
@@ -170,6 +168,43 @@ namespace Zata.FastReflection
                 ConverterExpr = Expression.Call(Method_ConvertObject, nameParameterExpr, Expression.Constant(returnType), Expression.Constant(IsIConvertible(returnType)), memberValue);
             }
             return ConverterExpr;
+        }
+
+        #endregion
+
+        #region FieldOrPropertys
+
+        public static void GetFieldPropertys<T>(
+            ref int FieldCount, ref int PropertyCount, 
+            ref string[] Fields, ref string[] Propertys,
+            ref string[] FieldPropertys)
+        {
+            Type type = typeof(T);
+            List<string> FieldList = new List<string>();
+            List<string> PropertyList = new List<string>();
+            List<string> FieldOrPropertyList = new List<string>();
+
+            MemberInfo[] memberList = type.GetMembers(BindingFlags.GetField | BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public | BindingFlags.Default);
+
+            foreach (var member in memberList)
+            {
+                if (member.MemberType == MemberTypes.Property)
+                {
+                    PropertyList.Add(member.Name);
+                    FieldOrPropertyList.Add(member.Name);
+                }
+                else if (member.MemberType != MemberTypes.Field)
+                {
+                    FieldList.Add(member.Name);
+                    FieldOrPropertyList.Add(member.Name);
+                }
+            }
+
+            FieldCount = FieldList.Count;
+            PropertyCount = PropertyList.Count;
+
+            Fields = FieldList.ToArray();
+            Propertys = PropertyList.ToArray();
         }
 
         #endregion
