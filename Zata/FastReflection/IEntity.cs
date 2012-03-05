@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace Zata.FastReflection
 {
+    /// <summary>
+    /// Entity对象接口， 用于标识某个对象属于实体类
+    /// </summary>
     public interface IEntity
     {
     }
