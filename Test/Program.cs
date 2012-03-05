@@ -20,42 +20,6 @@ namespace TestConsole
         {
             try
             {
-        //        var x = Expression.Parameter(typeof(object), "x");
-        //        var y = Expression.Parameter(typeof(object), "y");
-        //        var binder = Binder.BinaryOperation(
-        //            CSharpBinderFlags.None, ExpressionType.Add, typeof(Program),
-        //            new CSharpArgumentInfo[] { 
-        //CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), 
-        //CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null)});
-        //        Func<dynamic, dynamic, dynamic> f =
-        //            Expression.Lambda<Func<object, object, object>>(
-        //                Expression.Dynamic(binder, typeof(object), x, y),
-        //                new[] { x, y }
-        //            ).Compile();
-
-
-        //        int c = 12;
-        //        byte b = 3;
-
-        //        Console.WriteLine(f(c, b));
-
-                Run();
-                //ClassA a = new ClassA();
-                //ClassC c = new ClassC();
-
-                //c.UserName = "gzh";
-
-                //a.UserName = "temp";
-                //a.testEnum = TestEnum.Test3;
-
-                //EntityTools<ClassA>.SetValue(a, "testEnum", true, "1234");
-
-                //EntityTools<ClassA>.SetValue(a, "age", true, "123");
-
-                //Console.WriteLine(a.Age == 123);
-                //Type t = typeof(Int64);
-                //Type x = typeof(Int16);
-
             }
             catch (Exception ex)
             {
@@ -165,11 +129,12 @@ namespace TestConsole
 
     }
 
+    [Flags]
     public enum TestEnum
     {
         Test1 = 1,
-        Test2,
-        Test3
+        Test2 = 2,
+        Test3 = 4
     }
     
     public class ClassC : ClassB

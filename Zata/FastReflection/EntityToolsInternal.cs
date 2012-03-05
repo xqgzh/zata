@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
 using System.Diagnostics;
+using System.Data;
 
 namespace Zata.FastReflection
 {
@@ -193,7 +194,7 @@ namespace Zata.FastReflection
                     PropertyList.Add(member.Name);
                     FieldOrPropertyList.Add(member.Name);
                 }
-                else if (member.MemberType != MemberTypes.Field)
+                else if (member.MemberType == MemberTypes.Field)
                 {
                     FieldList.Add(member.Name);
                     FieldOrPropertyList.Add(member.Name);
@@ -202,9 +203,35 @@ namespace Zata.FastReflection
 
             FieldCount = FieldList.Count;
             PropertyCount = PropertyList.Count;
+            
 
             Fields = FieldList.ToArray();
             Propertys = PropertyList.ToArray();
+            FieldPropertys = FieldOrPropertyList.ToArray();
+        }
+
+        #endregion
+
+        #region 工具类方法
+
+        /// <summary>
+        /// 获取IDataParameter的名称
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        internal static string GetParameterName(IDataParameter p)
+        {
+            string pName = p.SourceColumn;
+
+            if (string.IsNullOrEmpty(pName))
+            {
+                pName = p.ParameterName.Substring(1);
+            }
+
+            if (pName.StartsWith("Original_"))
+                pName = pName.Remove(0, "Original_".Length);
+
+            return pName;
         }
 
         #endregion
